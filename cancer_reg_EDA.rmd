@@ -1,0 +1,131 @@
+---
+title: "Cancer_reg_EDA"
+author: "PCA group"
+date: '2022-07-14'
+output: pdf_document
+---
+
+```{r setup, include=FALSE, echo=FALSE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r loading data and loading packages}
+# load packages
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(haven)
+library(tidyverse)
+library(sandwich)
+library(lmtest)
+library(stargazer)
+library(Hmisc)
+library(funModeling)
+cancer <- read_csv("cancer_reg.csv")
+
+```
+
+# Correlation table:
+
+```{r}
+correlation_table(data = cancer, target = "target_deathrate")
+```
+
+# Plot positive correlations:
+
+Positive correlations: pctpubliccoveragealone, incidencerate, pcths25_over, povertypercent, pctpubliccoverage, pctunemployed16_over
+
+```{r}
+ggplot(data = cancer, aes(x = pctpubliccoveragealone, y = target_deathrate))+
+  geom_point()+
+  geom_smooth(method = lm)+labs(x = "Percentage of county with public coverage alone", y = "Cancer death incidence per 100,000")
+
+```
+
+```{r}
+ggplot(data = cancer, aes(x = incidencerate, y = target_deathrate))+
+  geom_point()+
+  geom_smooth(method = lm)+labs(x = "Cancer incident rate", y = "Cancer death incidence per 100,000")
+```
+
+```{r}
+ggplot(data = cancer, aes(x = pcths25_over, y = target_deathrate))+
+  geom_point()+
+  geom_smooth(method = lm)+labs(x="Percentage of county residents age > 25 with highschool as highest level of education", y= "Cancer death incidence per 100,000")
+```
+
+```{r}
+ggplot(data = cancer, aes(x = povertypercent, y = target_deathrate))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  labs(x="Percent of pupulace in poverty", y= "Cancer death incidence per 100,000")
+```
+
+```{r}
+
+ggplot(data = cancer, aes(x = pctpubliccoverage, y = target_deathrate))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  labs(x="Percent of county residents with government-provided health insurance", y= "Cancer death incidence per 100,000")
+
+```
+
+```{r}
+ggplot(data = cancer, aes(x = pctunemployed16_over, y = target_deathrate))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  labs(x="Percent of county residents ages 16 and over unemployed", y= "Cancer death incidence per 100,000")
+
+```
+
+# Plot negative correlations:
+
+pctbachdeg25_over -.44 medincome -0.38 pctemployed16_over -0.37 pctprivatecoverage -0.34\
+pctprivatecoveragealone -0.32
+
+```{r}
+
+ggplot(data = cancer, aes(x = pctbachdeg25_over, y = target_deathrate))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  labs(x="Percent of county residents ages >=25 with Bachelor degree as highest education", y= "Cancer death incidence per 100,000")
+
+```
+
+```{r}
+ggplot(data = cancer, aes(x = medincome, y = target_deathrate))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  labs(x="Median income per county", y= "Cancer death incidence per 100,000")
+
+
+```
+
+```{r}
+
+ggplot(data = cancer, aes(x = pctemployed16_over, y = target_deathrate))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  labs(x="Percent of county residents ages 16 and over employed", y= "Cancer death incidence per 100,000")
+
+
+```
+
+```{r}
+
+ggplot(data = cancer, aes(x = pctprivatecoverage, y = target_deathrate))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  labs(x="Percent of county residents with private health coverage", y= "Cancer death incidence per 100,000")
+
+
+```
+
+```{r}
+
+ggplot(data = cancer, aes(x = pctprivatecoveragealone, y = target_deathrate))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  labs(x="Percent of county residents with private health coverage (no public assistance)", y= "Cancer death incidence per 100,000")
+
+```
