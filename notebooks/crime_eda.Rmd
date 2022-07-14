@@ -13,18 +13,29 @@ header-includes:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-
+```{r check packages and install, include=FALSE}
+if(!require("RWeka")){install.packages('RWeka')}
+if(!require("Hmisc")){install.packages('Hmisc')}
+if(!require("funModeling")){install.packages('funModeling')}
+```
 ```{r load packages and set options, include=FALSE}
+
 library(tidyverse) 
 library(stargazer)
 library(sandwich)
 library(lmtest)
 library(RWeka)
+library(Hmisc)
+library(funModeling)
 
 theme_set(theme_bw())
 ```
 
 ```{r load data, message = FALSE, include=FALSE}
 #communities <- read.csv("../datasets/communities.csv",  header = FALSE)
-communities_names <- read.arff("../datasets/communities.arff")
+communities <- read.arff("../datasets/communities.arff")
+```
+
+```{r check correlations}
+correlation_table(data=communities, target="ViolentCrimesPerPop")
 ```
