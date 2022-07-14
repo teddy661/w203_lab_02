@@ -39,3 +39,77 @@ communities <- read.arff("../datasets/communities.arff")
 ```{r check correlations}
 correlation_table(data=communities, target="ViolentCrimesPerPop")
 ```
+
+```{r plots positive correlation}
+ggplot(communities, aes(x=PctIlleg, y=ViolentCrimesPerPop)) + 
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=pctWPubAsst, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=PctPopUnderPov, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=PctUnemployed, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=racepctblack, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=PctVacantBoarded, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=PctHousNoPhone, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=FemalePctDiv, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=PctLargHouseFam, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=TotalPctDiv, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=PctPolicBlack, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=PctPolicMinor, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=MalePctDivorce, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=NumIlleg, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=PctLargHouseOccup, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=PctWOFullPlumb, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+```
+```{r plots negative correlation}
+ggplot(communities, aes(x=medFamInc, y=ViolentCrimesPerPop)) + 
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=pctWInvInc, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=racePctWhite, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=PctYoungKids2Par, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=PctFam2Par, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=PctTeen2Par, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=PctKids2Par, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+```
