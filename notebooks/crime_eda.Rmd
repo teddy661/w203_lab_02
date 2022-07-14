@@ -1,0 +1,30 @@
+---
+title: "Crime_Dataset_EDA"
+author: "the_principal_components"
+date: "`r Sys.Date()`"
+output: pdf_document
+header-includes:
+ \usepackage{wrapfig}
+ \usepackage{float}
+ \floatplacement{figure}{H}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r load packages and set options, include=FALSE}
+library(tidyverse) 
+library(stargazer)
+library(sandwich)
+library(lmtest)
+library(RWeka)
+
+theme_set(theme_bw())
+```
+
+```{r load data, message = FALSE, include=FALSE}
+#communities <- read.csv("../datasets/communities.csv",  header = FALSE)
+communities_names <- read.arff("../datasets/communities.arff")
+```
