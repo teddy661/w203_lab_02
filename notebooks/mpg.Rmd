@@ -82,4 +82,5 @@ mpg_fit_01_se <- mpg_fit_01 %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
 stargazer(mpg_fit_01, type="text",se = list(mpg_fit_01_se))
 coeftest(mpg_fit_01, vconv = vcovHC(type = "HC1"))
 mpg_fit_o1_vif = ols_vif_tol(mpg_fit_01)
+plot(mpg_fit_01)
 ```

@@ -135,9 +135,10 @@ ggplot(communities, aes(x=PctFam2Par)) +
   geom_histogram(bins=60)
 ```
 ```{r fits }
-fit_01 <- communities %>% lm(ViolentCrimesPerPop ~ PctPopUnderPov + TotalPctDiv + PolicPerPop + PctFam2Par, data = .)
-fit_01_se <- fit_01 %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
-stargazer(fit_01, type="text",se = list(fit_01_se))
-coeftest(fit_01, vconv = vcovHC(type = "HC1"))
-fit_o1_vif = ols_vif_tol(fit_01)
+crime_fit_01 <- communities %>% lm(ViolentCrimesPerPop ~ PctPopUnderPov + TotalPctDiv + PolicPerPop + PctFam2Par, data = .)
+crime_fit_01_se <- crime_fit_01 %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+stargazer(crime_fit_01, type="text",se = list(crime_fit_01_se))
+coeftest(crime_fit_01, vconv = vcovHC(type = "HC1"))
+fit_o1_vif = ols_vif_tol(crime_fit_01)
+plot(crime_fit_01)
 ```
