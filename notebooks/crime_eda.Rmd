@@ -25,6 +25,7 @@ library(sandwich)
 library(lmtest)
 library(Hmisc)
 library(funModeling)
+library(olsrr)
 
 theme_set(theme_bw())
 ```
@@ -38,7 +39,7 @@ communities <- read.csv("../datasets/communities_with_headers.csv",  header = TR
 correlation_table(data=communities, target="ViolentCrimesPerPop")
 ```
 
-```{r plots positive correlation}
+```{r plots positive correlation, message = FALSE, include=FALSE}
 ggplot(communities, aes(x=PctIlleg, y=ViolentCrimesPerPop)) + 
   geom_point()+
   geom_smooth(method=lm)
@@ -88,7 +89,7 @@ ggplot(communities, aes(x=PctWOFullPlumb, y=ViolentCrimesPerPop)) +
   geom_point()+
   geom_smooth(method=lm)
 ```
-```{r plots negative correlation}
+```{r plots negative correlation, message = FALSE, include=FALSE}
 ggplot(communities, aes(x=medFamInc, y=ViolentCrimesPerPop)) + 
   geom_point()+
   geom_smooth(method=lm)
@@ -110,4 +111,33 @@ ggplot(communities, aes(x=PctTeen2Par, y=ViolentCrimesPerPop)) +
 ggplot(communities, aes(x=PctKids2Par, y=ViolentCrimesPerPop)) +
   geom_point()+
   geom_smooth(method=lm)
+```
+```{r plots selected variables}
+ggplot(communities, aes(x=PctPopUnderPov, y=ViolentCrimesPerPop)) + 
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=PctPopUnderPov)) + 
+  geom_histogram(bins=60)
+ggplot(communities, aes(x=TotalPctDiv, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=TotalPctDiv)) + 
+  geom_histogram(bins=60)
+ggplot(communities, aes(x=PolicPerPop, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=PolicPerPop)) + 
+  geom_histogram(bins=60)
+ggplot(communities, aes(x=PctFam2Par, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=PctFam2Par)) + 
+  geom_histogram(bins=60)
+```
+```{r fits }
+fit_01 <- communities %>% lm(ViolentCrimesPerPop ~ PctPopUnderPov + TotalPctDiv + PolicPerPop + PctFam2Par, data = .)
+fit_01_se <- fit_01 %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+stargazer(fit_01, type="text",se = list(fit_01_se))
+coeftest(fit_01, vconv = vcovHC(type = "HC1"))
+fit_o1_vif = ols_vif_tol(fit_01)
 ```
