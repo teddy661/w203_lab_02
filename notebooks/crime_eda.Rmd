@@ -14,7 +14,6 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r check packages and install, include=FALSE}
-#if(!require("RWeka")){install.packages('RWeka')}
 if(!require("Hmisc")){install.packages('Hmisc')}
 if(!require("funModeling")){install.packages('funModeling')}
 ```
@@ -24,7 +23,6 @@ library(tidyverse)
 library(stargazer)
 library(sandwich)
 library(lmtest)
-#library(RWeka)
 library(Hmisc)
 library(funModeling)
 
