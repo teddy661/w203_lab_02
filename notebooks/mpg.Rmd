@@ -1,0 +1,77 @@
+---
+title: "Crime_Dataset_EDA"
+author: "the_principal_components"
+date: "`r Sys.Date()`"
+output: pdf_document
+header-includes:
+ \usepackage{wrapfig}
+ \usepackage{float}
+ \floatplacement{figure}{H}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r check packages and install, include=FALSE}
+if(!require("Hmisc")){install.packages('Hmisc')}
+if(!require("funModeling")){install.packages('funModeling')}
+```
+```{r load packages and set options, include=FALSE}
+
+library(tidyverse) 
+library(stargazer)
+library(sandwich)
+library(lmtest)
+library(Hmisc)
+library(funModeling)
+
+theme_set(theme_bw())
+```
+
+```{r load data, message = FALSE, include=FALSE}
+mpg <- read.csv("../datasets/vehicles.csv",  header = TRUE)
+```
+```{r}
+mpg_has_luggage <-dplyr::filter(mpg, lv2 != 0 | lv4 != 0)
+mpg_has_luggage_and_passenger <-dplyr::filter(mpg, pv2 != 0 | pv4 != 0)
+mpg_with_classifier <- mpg_has_luggage_and_passenger %>% mutate( isTwoDoor = (pv2 != 0))
+two_door <- dplyr::filter(mpg_with_classifier, isTwoDoor == TRUE) %>% mutate( total_volume = pv2 + lv2)
+four_door <- dplyr::filter(mpg_with_classifier, isTwoDoor == FALSE) %>% mutate( total_volume = pv4 + lv4)
+final_mpg_dataset = rbind(two_door, four_door)
+rm(list=c("two_door", "four_door", "mpg_has_luggage", "mpg_has_luggage_and_passenger", "mpg_with_classifier"))
+```
+
+```{r check correlations}
+correlation_table(data=final_mpg_dataset, target="city08")
+```
+
+```{r plots }
+ggplot(dplyr::filter(final_mpg_dataset, isTwoDoor == TRUE), aes(x=cylinders, y=city08)) + 
+  geom_point()+
+  geom_smooth(method=lm)
+
+ggplot(dplyr::filter(final_mpg_dataset, isTwoDoor == TRUE), aes(x=displ, y=city08)) +
+  geom_point()+
+  geom_smooth(method=lm)
+
+ggplot(dplyr::filter(final_mpg_dataset, isTwoDoor == TRUE), aes(x=total_volume , y=city08)) +
+  geom_point()+
+  geom_smooth(method=lm)
+
+ggplot(dplyr::filter(final_mpg_dataset, isTwoDoor == TRUE), aes(x=engId, y=city08)) +
+  geom_point()+
+  geom_smooth(method=lm)
+
+ggplot(dplyr::filter(final_mpg_dataset, isTwoDoor == TRUE), aes(x=trany, y=city08)) +
+  geom_point()+
+  geom_smooth(method=lm)
+
+ggplot(dplyr::filter(final_mpg_dataset, isTwoDoor == TRUE), aes(x=VClass, y=city08)) +
+  geom_point()+
+  geom_smooth(method=lm)
+
+ggplot(dplyr::filter(final_mpg_dataset, isTwoDoor == TRUE), aes(x=startStop , y=city08)) +
+  geom_point()+
+  geom_smooth(method=lm)
+```
