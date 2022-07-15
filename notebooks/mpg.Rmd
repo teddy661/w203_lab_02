@@ -25,6 +25,7 @@ library(sandwich)
 library(lmtest)
 library(Hmisc)
 library(funModeling)
+library(olsrr)
 
 theme_set(theme_bw())
 ```
@@ -77,8 +78,8 @@ ggplot(dplyr::filter(final_mpg_dataset, isTwoDoor == TRUE), aes(x=startStop , y=
 ```
 ```{r fits }
 mpg_fit_01 <- final_mpg_dataset %>% lm(city08 ~ displ + total_volume + VClass, data = .)
-mpg_fit_01_se <- fit_01 %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
-stargazer(mpg_fit_01, type="text",se = list(fit_01_se))
+mpg_fit_01_se <- mpg_fit_01 %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+stargazer(mpg_fit_01, type="text",se = list(mpg_fit_01_se))
 coeftest(mpg_fit_01, vconv = vcovHC(type = "HC1"))
 mpg_fit_o1_vif = ols_vif_tol(mpg_fit_01)
 ```
