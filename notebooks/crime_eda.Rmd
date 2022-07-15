@@ -16,7 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r check packages and install, include=FALSE}
 if(!require("RWeka")){install.packages('RWeka')}
 if(!require("Hmisc")){install.packages('Hmisc')}
-if(!require("funModeling")){install.packages('funModeling')}
+# if(!require("funModeling")){install.packages('funModeling')}
 ```
 ```{r load packages and set options, include=FALSE}
 
@@ -32,7 +32,7 @@ theme_set(theme_bw())
 ```
 
 ```{r load data, message = FALSE, include=FALSE}
-#communities <- read.csv("../datasets/communities.csv",  header = FALSE)
+#communities <- read.csv("../datasets/communities_with_headers.csv",  header = FALSE)
 communities <- read.arff("../datasets/communities.arff")
 ```
 
