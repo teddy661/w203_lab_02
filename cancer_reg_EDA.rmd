@@ -21,6 +21,7 @@ library(lmtest)
 library(stargazer)
 library(Hmisc)
 library(funModeling)
+library(olsrr)
 cancer <- read_csv("cancer_reg.csv")
 
 ```
@@ -128,4 +129,14 @@ ggplot(data = cancer, aes(x = pctprivatecoveragealone, y = target_deathrate))+
   geom_smooth(method = lm)+
   labs(x="Percent of county residents with private health coverage (no public assistance)", y= "Cancer death incidence per 100,000")
 
+```
+
+```{r fits }
+canc_fit_01 <- cancer %>% lm(target_deathrate ~ pctpubliccoveragealone + povertypercent + pctbachdeg25_over + pctprivatecoverage , data = .)
+canc_fit_01_se <- canc_fit_01 %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+stargazer(canc_fit_01, type="text",se = list(canc_fit_01_se))
+coeftest(canc_fit_01, vconv = vcovHC(type = "HC1"))
+canc_fit_o1_vif = ols_vif_tol(canc_fit_01)
+plot(canc_fit_01)
+lmtest::bptest(canc_fit_01)
 ```
