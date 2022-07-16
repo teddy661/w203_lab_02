@@ -34,12 +34,12 @@ theme_set(theme_bw())
 mpg <- read.csv("../datasets/vehicles.csv",  header = TRUE)
 ```
 ```{r}
-mpg_has_luggage <-dplyr::filter(mpg, lv2 != 0 | lv4 != 0)
-mpg_has_luggage_and_passenger <-dplyr::filter(mpg, pv2 != 0 | pv4 != 0)
-mpg_with_classifier <- mpg_has_luggage_and_passenger %>% mutate( isTwoDoor = (pv2 != 0))
-two_door <- dplyr::filter(mpg_with_classifier, isTwoDoor == TRUE) %>% mutate( total_volume = pv2 + lv2)
-four_door <- dplyr::filter(mpg_with_classifier, isTwoDoor == FALSE) %>% mutate( total_volume = pv4 + lv4)
-final_mpg_dataset = rbind(two_door, four_door)
+only_trucks <-dplyr::filter(mpg, VClass == "Standard Pickup Trucks"  | VClass =="Standard Pickup Trucks 2WD" | VClass == "Standard Pickup Trucks 4WD")
+#mpg_has_luggage_and_passenger <-dplyr::filter(only_trucks, pv2 != 0 | pv4 != 0)
+#mpg_with_classifier <- mpg_has_luggage_and_passenger %>% mutate( isTwoDoor = (pv2 != 0))
+#two_door <- dplyr::filter(mpg_with_classifier, isTwoDoor == TRUE) %>% mutate( total_volume = pv2 + lv2)
+#four_door <- dplyr::filter(mpg_with_classifier, isTwoDoor == FALSE) %>% mutate( total_volume = pv4 + lv4)
+final_mpg_dataset <- only_trucks
 rm(list=c("two_door", "four_door", "mpg_has_luggage", "mpg_has_luggage_and_passenger", "mpg_with_classifier"))
 ```
 
@@ -48,40 +48,36 @@ correlation_table(data=final_mpg_dataset, target="city08")
 ```
 
 ```{r plots }
-ggplot(dplyr::filter(final_mpg_dataset, isTwoDoor == TRUE), aes(x=cylinders, y=city08)) + 
+ggplot(final_mpg_dataset, aes(x=cylinders, y=city08)) + 
   geom_point()+
   geom_smooth(method=lm)
 
-ggplot(dplyr::filter(final_mpg_dataset, isTwoDoor == TRUE), aes(x=displ, y=city08)) +
+ggplot(final_mpg_dataset, aes(x=displ, y=city08)) +
   geom_point()+
   geom_smooth(method=lm)
 
-ggplot(dplyr::filter(final_mpg_dataset, isTwoDoor == TRUE), aes(x=total_volume , y=city08)) +
+ggplot(final_mpg_dataset, aes(x=engId, y=city08)) +
   geom_point()+
   geom_smooth(method=lm)
 
-ggplot(dplyr::filter(final_mpg_dataset, isTwoDoor == TRUE), aes(x=engId, y=city08)) +
+ggplot(final_mpg_dataset, aes(x=trany, y=city08)) +
   geom_point()+
   geom_smooth(method=lm)
 
-ggplot(dplyr::filter(final_mpg_dataset, isTwoDoor == TRUE), aes(x=trany, y=city08)) +
+ggplot(final_mpg_dataset, aes(x=VClass, y=city08)) +
   geom_point()+
   geom_smooth(method=lm)
 
-ggplot(dplyr::filter(final_mpg_dataset, isTwoDoor == TRUE), aes(x=VClass, y=city08)) +
-  geom_point()+
-  geom_smooth(method=lm)
-
-ggplot(dplyr::filter(final_mpg_dataset, isTwoDoor == TRUE), aes(x=startStop , y=city08)) +
+ggplot(final_mpg_dataset, aes(x=startStop , y=city08)) +
   geom_point()+
   geom_smooth(method=lm)
 ```
 ```{r fits }
-mpg_fit_01 <- final_mpg_dataset %>% lm(city08 ~ displ + total_volume + VClass, data = .)
+mpg_fit_01 <- final_mpg_dataset %>% lm(city08 ~ displ, data = .)
 mpg_fit_01_se <- mpg_fit_01 %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
 stargazer(mpg_fit_01, type="text",se = list(mpg_fit_01_se))
 coeftest(mpg_fit_01, vconv = vcovHC(type = "HC1"))
-mpg_fit_o1_vif = ols_vif_tol(mpg_fit_01)
+#mpg_fit_o1_vif = ols_vif_tol(mpg_fit_01)
 plot(mpg_fit_01)
 lmtest::bptest(mpg_fit_01)
 ```

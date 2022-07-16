@@ -117,6 +117,12 @@ stargazer(m_minimal, m_central, m_verbose, type = 'latex',
           notes = "\\parbox[t]{.55\\textwidth}{$HC_1$ robust standard errors in parentheses.\\\\Additional features are deck area, open porch area, enclosed porch area, 3-season porch area, street type, lot shape, lot configuration, land slope, masonry veneer type, heating type, central air conditioning, electrical system, roof style, roof material, kitchen number, paved driveway, and pool area.}", notes.align='l'
 )
 ```
+```{r}
+  library(olsrr)
+  lmtest::bptest(m_minimal)
+  lmtest::bptest(m_central)
+  lmtest::bptest(m_verbose)
+```
 
 Table 1 shows the results of three representative regressions. Across all models, the key coefficient on $R \cdot (year\ remodeled - year\ built)$ was highly statistically significant. Point estimates range from `r min(m_minimal$coef[2], m_central$coef[2], m_verbose$coef[2]) %>% sprintf(fmt = '%#.2f')` to `r max(m_minimal$coef[2], m_central$coef[2], m_verbose$coef[2]) %>% sprintf(fmt = '%#.2f')`. To provide some sense of scale, consider a hypothetical house with 2,000 square feet of living area that was never remodeled before. Applying model 3, if the house is 20 years old, a remodel is predicted to increase resale value by `r (m_verbose$coef[2] * 2000 * 20) %>% signif(2) %>% formatC(format="fg", big.mark=",")` dollars. If the house is 50 years old, the number rises to `r (m_verbose$coef[2] * 2000 * 50) %>% signif(2) %>% formatC(format="fg", big.mark=",")` dollars.
 
@@ -141,5 +147,5 @@ This study estimated the economic value of remodeling a home. For every year tha
 In future research, new datasets may be generated to estimate the value of specific types of remodels. Owners may want to know, for example, the financial benefit of new floors or hidding kitchen appliances. The ultimate hope of this line of work is to provide accurate tools for owners to plan investments, and reduce uncertainty in the remodeling industry. 
 
 
- 
+
 

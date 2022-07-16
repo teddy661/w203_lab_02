@@ -133,6 +133,14 @@ ggplot(communities, aes(x=PctFam2Par, y=ViolentCrimesPerPop)) +
   geom_smooth(method=lm)
 ggplot(communities, aes(x=PctFam2Par)) + 
   geom_histogram(bins=60)
+ggplot(communities, aes(x=medFamInc, y=PolicPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=medFamInc)) + 
+  geom_histogram(bins=60)
+
+ggplot(communities, aes(x=perCapInc)) + 
+  geom_histogram(bins=60)
 ```
 ```{r fits }
 crime_fit_01 <- communities %>% lm(ViolentCrimesPerPop ~ PctPopUnderPov + TotalPctDiv + PolicPerPop + PctFam2Par, data = .)
