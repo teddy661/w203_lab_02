@@ -299,6 +299,7 @@ coeftest(crime_fit_04, vconv = vcovHC(type = "HC1"))
 plot(crime_fit_04)
 lmtest::bptest(crime_fit_04)
 ```
+
 ```{r}
 layout(matrix(c(1,2,3,4), nrow = 2, ncol = 2, byrow = TRUE))
 plot(1,main=1)
@@ -312,6 +313,79 @@ coeftest(crime_fit_05, vconv = vcovHC(type = "HC1"))
 plot(crime_fit_05)
 lmtest::bptest(crime_fit_05)
 ```
+
+```{r}
+## 30% of the sample size
+smp_size <- floor(0.30 * nrow(communities_1))
+
+## set the seed to make your partition reproducible
+set.seed(123)
+train_ind <- sample(seq_len(nrow(communities_1)), size = smp_size)
+
+train_crime <- communities_1[train_ind, ]
+test_crime <- communities_1[-train_ind, ]
 ```
+
+```{r develop model using 30% exploration set and 3 variables}
+layout(matrix(c(1,2,3,4), nrow = 2, ncol = 2, byrow = TRUE))
+plot(1,main=1)
+plot(2,main=2)
+plot(3,main=3)
+plot(4,main=4)
+train_crime_fit <- train_crime %>% lm(ln_ViolentCrimes ~ ln_Illeg + ln_PopUnderPov + TotalPctDiv, data = .)
+train_crime_fit_se <- train_crime_fit %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+coeftest(train_crime_fit, vconv = vcovHC(type = "HC1"))
+plot(train_crime_fit)
+lmtest::bptest(train_crime_fit)
+```
+```{r confirm model using 70% confirmation set and 3 variables}
+layout(matrix(c(1,2,3,4), nrow = 2, ncol = 2, byrow = TRUE))
+plot(1,main=1)
+plot(2,main=2)
+plot(3,main=3)
+plot(4,main=4)
+test_crime_fit <- test_crime %>% lm(ln_ViolentCrimes ~ ln_Illeg + ln_PopUnderPov + TotalPctDiv, data = .)
+test_crime_fit_se <- test_crime_fit %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+coeftest(test_crime_fit, vconv = vcovHC(type = "HC1"))
+plot(test_crime_fit)
+lmtest::bptest(test_crime_fit)
+
+```
+```{r use 70% confirmation dataset with one key variable}
+layout(matrix(c(1,2,3,4), nrow = 2, ncol = 2, byrow = TRUE))
+plot(1,main=1)
+plot(2,main=2)
+plot(3,main=3)
+plot(4,main=4)
+test_crime_fit_base <- test_crime %>% lm(ln_ViolentCrimes ~ ln_Illeg, data = .)
+test_crime_fit_base_se <- test_crime_fit_base %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+coeftest(test_crime_fit_base, vconv = vcovHC(type = "HC1"))
+plot(test_crime_fit_base)
+lmtest::bptest(test_crime_fit_base)
+```
+```{r 70% confirmation dataset and two variables}
+layout(matrix(c(1,2,3,4), nrow = 2, ncol = 2, byrow = TRUE))
+plot(1,main=1)
+plot(2,main=2)
+plot(3,main=3)
+plot(4,main=4)
+test_crime_fit_plus <- test_crime %>% lm(ln_ViolentCrimes ~ TotalPctDiv + ln_Illeg, data = .)
+test_crime_fit_plus_se <- test_crime_fit_plus %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+coeftest(test_crime_fit_plus, vconv = vcovHC(type = "HC1"))
+plot(test_crime_fit_plus)
+lmtest::bptest(test_crime_fit_plus)
+```
+
+
+
+```{r}
+
+stargazer(star.cutoffs = c(0.05, 0.01, 0.001),
+          title = "Violent Crime Models and Predictor Variables",
+          test_crime_fit_base, test_crime_fit_plus, test_crime_fit, type="text",
+          se = list(test_crime_fit_base_se, test_crime_fit_plus_se, test_crime_fit_se))
+```
+```
+
 
 
