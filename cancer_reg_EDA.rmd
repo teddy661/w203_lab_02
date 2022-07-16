@@ -132,7 +132,8 @@ ggplot(data = cancer, aes(x = pctprivatecoveragealone, y = target_deathrate))+
 ```
 
 ```{r fits }
-canc_fit_01 <- cancer %>% lm(target_deathrate ~ pctpubliccoveragealone + medincome  + incidencerate + pctprivatecoverage , data = .)
+canc_fit_01 <- cancer %>% lm(target_deathrate ~  povertypercent + incidencerate + pctpubliccoveragealone
++ pctbachdeg25_over, data = .)
 canc_fit_01_se <- canc_fit_01 %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
 stargazer(canc_fit_01, type="text",se = list(canc_fit_01_se))
 coeftest(canc_fit_01, vconv = vcovHC(type = "HC1"))
