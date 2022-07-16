@@ -143,7 +143,7 @@ ggplot(communities, aes(x=perCapInc)) +
   geom_histogram(bins=60)
 ```
 ```{r fits }
-crime_fit_01 <- communities %>% lm(ViolentCrimesPerPop ~ PctPopUnderPov + TotalPctDiv + PolicPerPop + PctFam2Par, data = .)
+crime_fit_01 <- communities %>% lm(ViolentCrimesPerPop ~ PctIlleg + HousVacant +  PctUnemployed, data = .)
 crime_fit_01_se <- crime_fit_01 %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
 stargazer(crime_fit_01, type="text",se = list(crime_fit_01_se))
 coeftest(crime_fit_01, vconv = vcovHC(type = "HC1"))
