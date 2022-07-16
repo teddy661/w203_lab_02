@@ -40,41 +40,25 @@ correlation_table(data=communities, target="ViolentCrimesPerPop")
 ```
 ```{r}
 communities <- communities %>% 
-  mutate(ViolentCrimes_count = ViolentCrimesPerPop * population)
+  mutate(
+    ViolentCrimes_count = ViolentCrimesPerPop * population,
+    ln_ViolentCrimes_count = log(ViolentCrimes_count+1),
+    ln_ViloentCrimesPerPop = log(ViolentCrimesPerPop+1),
+    Illeg_count = PctIlleg * population,
+    ln_Illeg_count = log(Illeg_count+1),
+    PopUnderPov_count = PctPopUnderPov * population,
+    ln_PopUnderPov_count = log(PopUnderPov_count+1),
+    Fam2Par_count = PctFam2Par * population,
+    ln_Fam2Par_count = log(Fam2Par_count+1),
+    ln_Fam2Par = log(PctFam2Par+1)
+)
+communities_2 <- communities
+```
 
-communities <- communities %>% 
-mutate(ln_ViolentCrimes_count = log(ViolentCrimes_count))
-
-communities <- communities %>% 
-mutate(Illeg_count = PctIlleg * population)
-
-communities <- communities %>% 
-mutate(ln_Illeg_count = log(Illeg_count))
-
-communities <- communities %>% 
-mutate(PopUnderPov_count = PctPopUnderPov * population)
-
-communities <- communities %>% 
-mutate(ln_PopUnderPov_count = log(PopUnderPov_count))
-
-communities <- communities %>% 
-mutate(Fam2Par_count = PctFam2Par * population)
-# 
-# communities <- communities %>% 
-# mutate(ln_Fam2Par_count = log(Fam2Par_count))
-
+```{r}
 ggplot(communities, aes(x=PctIlleg, y=ln_ViolentCrimes_count)) + 
   geom_point()+
   geom_smooth(method=lm)
-
-# summary(communities$ViolentCrimesPerPop)
-# subset(communities,communities$ViolentCrimesPerPop==0)
-communities_2 <- communities %>%
-  subset(ViolentCrimes_count>0 ) %>% 
-  subset(Illeg_count>0) %>% 
-  subset(HousVacant>0) %>% 
-  subset(PopUnderPov_count>0) %>% 
-  subset(Fam2Par_count>0)
 
 # summary(communities_2$ViolentCrimesPerPop)
 summary(communities_2$PctIlleg)
@@ -212,8 +196,6 @@ lmtest::bptest(crime_fit_01)
 fit_o1_vif
 ```
 ```{r}
-# crime_fit_02 <- communities_2 %>% lm(ln_ViolentCrimes_count ~ PctIlleg + HousVacant + PctUnemployed + NumStreet + TotalPctDiv, data = .)
-# crime_fit_02 <- communities_2 %>% lm(ln_ViolentCrimes_count ~ PctIlleg + TotalPctDiv, data = .)
 crime_fit_02 <- communities_2 %>% lm(ln_ViolentCrimes_count ~ ln_Illeg_count, data = .)
 crime_fit_02_se <- crime_fit_02 %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
 stargazer(crime_fit_02, type="text",se = list(crime_fit_02_se))
@@ -222,8 +204,6 @@ plot(crime_fit_02)
 lmtest::bptest(crime_fit_02)
 ```
 ```{r}
-# crime_fit_02 <- communities_2 %>% lm(ln_ViolentCrimes_count ~ PctIlleg + HousVacant + PctUnemployed + NumStreet + TotalPctDiv, data = .)
-# crime_fit_02 <- communities_2 %>% lm(ln_ViolentCrimes_count ~ PctIlleg + TotalPctDiv, data = .)
 crime_fit_03 <- communities_2 %>% lm(ln_ViolentCrimes_count ~ ln_Illeg_count + ln_PopUnderPov_count, data = .)
 crime_fit_03_se <- crime_fit_03 %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
 stargazer(crime_fit_03, type="text",se = list(crime_fit_03_se))
@@ -232,8 +212,6 @@ plot(crime_fit_03)
 lmtest::bptest(crime_fit_03)
 ```
 ```{r}
-# crime_fit_02 <- communities_2 %>% lm(ln_ViolentCrimes_count ~ PctIlleg + HousVacant + PctUnemployed + NumStreet + TotalPctDiv, data = .)
-# crime_fit_02 <- communities_2 %>% lm(ln_ViolentCrimes_count ~ PctIlleg + TotalPctDiv, data = .)
 crime_fit_04 <- communities_2 %>% lm(ln_ViolentCrimes_count ~ ln_PopUnderPov_count, data = .)
 crime_fit_04_se <- crime_fit_04 %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
 stargazer(crime_fit_04, type="text",se = list(crime_fit_03_se))
@@ -242,3 +220,11 @@ plot(crime_fit_04)
 lmtest::bptest(crime_fit_04)
 ```
 
+```{r}
+crime_fit_05 <- communities_2 %>% lm(ln_ViolentCrimes_count ~ ln_PopUnderPov_count, data = .)
+crime_fit_05_se <- crime_fit_05 %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+stargazer(crime_fit_05, type="text",se = list(crime_fit_03_se))
+coeftest(crime_fit_05, vconv = vcovHC(type = "HC1"))
+plot(crime_fit_05)
+lmtest::bptest(crime_fit_05)
+```
