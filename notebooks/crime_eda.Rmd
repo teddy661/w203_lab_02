@@ -46,6 +46,10 @@ communities <- communities %>%
     ln_ViloentCrimesPerPop = log(ViolentCrimesPerPop+1),
     Illeg_count = PctIlleg * population,
     ln_Illeg_count = log(Illeg_count+1),
+    NumUnemployed = PctUnemployed * population,
+    ln_NumUnemployed = log(NumUnemployed+1),
+    NumDivorced = TotalPctDiv * population,
+    ln_NumDivorced = log(NumDivorced+1),
     PopUnderPov_count = PctPopUnderPov * population,
     ln_PopUnderPov_count = log(PopUnderPov_count+1),
     Fam2Par_count = PctFam2Par * population,
@@ -186,7 +190,7 @@ ggplot(communities, aes(x=population)) +
   geom_histogram(bins=60)
 ```
 ```{r fits }
-crime_fit_01 <- communities %>% lm(ViolentCrimesPerPop ~ PctIlleg + HousVacant + PctUnemployed + NumStreet + TotalPctDiv, data = .)
+crime_fit_01 <- communities %>% lm(ln_ViolentCrimes_count ~ ln_Illeg_count + ln_NumDivorced, data = .)
 crime_fit_01_se <- crime_fit_01 %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
 stargazer(crime_fit_01, type="text",se = list(crime_fit_01_se))
 coeftest(crime_fit_01, vconv = vcovHC(type = "HC1"))
