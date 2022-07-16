@@ -1,0 +1,317 @@
+---
+title: "Crime_Dataset_EDA"
+author: "the_principal_components"
+date: "`r Sys.Date()`"
+output: pdf_document
+header-includes:
+ \usepackage{wrapfig}
+ \usepackage{float}
+ \floatplacement{figure}{H}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r check packages and install, include=FALSE}
+if(!require("Hmisc")){install.packages('Hmisc')}
+if(!require("funModeling")){install.packages('funModeling')}
+if(!require("ggplot2")){install.packages('ggplot2')}
+if(!require("caret")){install.packages('caret', dependencies = TRUE)}
+
+```
+```{r load packages and set options, include=FALSE}
+
+library(tidyverse) 
+library(stargazer)
+library(sandwich)
+library(lmtest)
+library(Hmisc)
+library(funModeling)
+library(olsrr)
+library(devtools)
+library(moments)
+theme_set(theme_bw())
+```
+
+```{r load data, message = FALSE, include=FALSE}
+communities <- read.csv("../datasets/communities_with_headers.csv",  header = TRUE)
+#communities <- read.arff("../datasets/communities.arff")
+```
+
+```{r check correlations}
+correlation_table(data=communities, target="ViolentCrimesPerPop")
+```
+```{r}
+par(mfrow=c(7, 2))
+communities <- communities %>% 
+mutate(ln_ViolentCrimes = log(ViolentCrimesPerPop+0.00001))
+
+communities <- communities %>% 
+mutate(ln_Illeg = log(PctIlleg+0.00001))
+
+communities <- communities %>% 
+mutate(ln_PopUnderPov = log(PctPopUnderPov+0.00001))
+
+communities <- communities %>%
+mutate(ln_Fam2Par = log(PctFam2Par+0.00001))
+
+communities <- communities %>%
+mutate(ln_Unemployed = log(PctUnemployed+0.00001))
+
+print(subset(communities, ln_ViolentCrimes< -9 ))
+print(subset(communities, ViolentCrimesPerPop == 0))
+
+communities_1 <- dplyr::filter(communities, ViolentCrimesPerPop != 0) 
+communities_1 <- dplyr::filter(communities_1, PctPopUnderPov != 0) 
+communities_1 <- dplyr::filter(communities_1, PctIlleg != 0)
+communities_1 <- dplyr::filter(communities_1, PctUnemployed != 0)
+
+ggplot(communities_1, aes(x=PctIlleg, y=ln_ViolentCrimes)) + 
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities_1, aes(x=PctPopUnderPov, y=ln_ViolentCrimes)) + 
+  geom_point()+
+  geom_smooth(method=lm)
+
+ggplot(communities_1, aes(x=PctFam2Par, y=ln_ViolentCrimes)) + 
+  geom_point()+
+  geom_smooth(method=lm)
+
+ggplot(communities_1, aes(x=ln_PopUnderPov, y=TotalPctDiv)) + 
+  geom_point()+
+  geom_smooth(method=lm)
+
+ggplot(communities_1, aes(x=ln_ViolentCrimes)) + 
+  geom_histogram(bins=60)
+ggplot(communities_1, aes(x=ViolentCrimesPerPop)) + 
+  geom_histogram(bins=60)
+
+ggplot(communities_1, aes(x= ln_Fam2Par)) + 
+  geom_histogram(bins=60)
+ggplot(communities_1, aes(x=PctFam2Par)) + 
+  geom_histogram(bins=60)
+
+ggplot(communities_1, aes(x= ln_Illeg)) + 
+  geom_histogram(bins=60)
+ggplot(communities_1, aes(x=PctIlleg)) + 
+  geom_histogram(bins=60)
+ggplot(communities_1, aes(x= ln_PopUnderPov)) + 
+  geom_histogram(bins=60)
+ggplot(communities_1, aes(x=PctPopUnderPov)) + 
+  geom_histogram(bins=60)
+ggplot(communities_1, aes(x= TotalPctDiv)) + 
+  geom_histogram(bins=60)
+ggplot(communities_1, aes(x= PctUnemployed)) + 
+  geom_histogram(bins=60)
+ggplot(communities_1, aes(x= ln_Unemployed)) + 
+  geom_histogram(bins=60)
+
+skew_violent <- skewness(communities_1$ViolentCrimesPerPop)
+skew_ln_violent <- skewness(communities_1$ln_ViolentCrimes)
+mean_ln_violent <- mean(communities_1$ln_ViolentCrimes)
+print(paste0("Skewness of ViolentCrimesPerPop: ", skew_violent))
+print(paste0("Skewness of ln_ViolentCrimesp: ", skew_ln_violent))
+print(paste0("Mean of ln_ViolentCrimesp: ", mean_ln_violent)) 
+# print(subset(communities_1, PctPopUnderPov == 0 ))
+# print(subset(communities_1, PctIlleg == 0 ))
+# print(subset(communities_1, PctUnemployed == 0 ))
+```
+
+
+```{r plots positive correlation, message = FALSE, include=FALSE}
+ggplot(communities, aes(x=PctIlleg, y=ViolentCrimesPerPop)) + 
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=pctWPubAsst, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=PctPopUnderPov, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=PctUnemployed, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=racepctblack, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=PctVacantBoarded, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=PctHousNoPhone, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=FemalePctDiv, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=PctLargHouseFam, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=TotalPctDiv, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=PctPolicBlack, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=PctPolicMinor, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=MalePctDivorce, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=NumIlleg, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=PctLargHouseOccup, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=PctWOFullPlumb, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+```
+```{r plots negative correlation, message = FALSE, include=FALSE}
+ggplot(communities, aes(x=medFamInc, y=ViolentCrimesPerPop)) + 
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=pctWInvInc, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=racePctWhite, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=PctYoungKids2Par, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=PctFam2Par, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=PctTeen2Par, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=PctKids2Par, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+```
+```{r plots selected variables}
+ggplot(communities, aes(x=PctPopUnderPov, y=ViolentCrimesPerPop)) + 
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=PctPopUnderPov)) + 
+  geom_histogram(bins=60)
+ggplot(communities, aes(x=TotalPctDiv, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=TotalPctDiv)) + 
+  geom_histogram(bins=60)
+ggplot(communities, aes(x=PolicPerPop, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=PolicPerPop)) + 
+  geom_histogram(bins=60)
+ggplot(communities, aes(x=PctFam2Par, y=ViolentCrimesPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=PctFam2Par)) + 
+  geom_histogram(bins=60)
+ggplot(communities, aes(x=medFamInc, y=PolicPerPop)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(communities, aes(x=medFamInc)) + 
+  geom_histogram(bins=60)
+
+ggplot(communities, aes(x=perCapInc)) + 
+  geom_histogram(bins=60)
+ggplot(communities, aes(x=ViolentCrimesPerPop)) + 
+  geom_histogram(bins=60)
+ggplot(communities, aes(x=population)) + 
+  geom_histogram(bins=60)
+```
+```{r fits }
+layout(matrix(c(1,2,3,4), nrow = 2, ncol = 2, byrow = TRUE))
+plot(1,main=1)
+plot(2,main=2)
+plot(3,main=3)
+plot(4,main=4)
+crime_fit_01 <- communities %>% lm(ViolentCrimesPerPop ~ PctIlleg + HousVacant + PctUnemployed + NumStreet + TotalPctDiv, data = .)
+crime_fit_01_se <- crime_fit_01 %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+stargazer(crime_fit_01, type="text",se = list(crime_fit_01_se))
+coeftest(crime_fit_01, vconv = vcovHC(type = "HC1"))
+fit_o1_vif = ols_vif_tol(crime_fit_01)
+plot(crime_fit_01)
+lmtest::bptest(crime_fit_01)
+fit_o1_vif
+```
+
+
+
+```{r}
+# par(mfrow=c(3,2))
+layout(matrix(c(1,2,3,4), nrow = 2, ncol = 2, byrow = TRUE))
+plot(1,main=1)
+plot(2,main=2)
+plot(3,main=3)
+plot(4,main=4)
+crime_fit_02 <- communities_1 %>% lm(ln_ViolentCrimes ~ ln_Illeg, data = .)
+crime_fit_02_se <- crime_fit_02 %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+stargazer(crime_fit_02, type="text",se = list(crime_fit_02_se))
+coeftest(crime_fit_02, vconv = vcovHC(type = "HC1"))
+plot(crime_fit_02)
+lmtest::bptest(crime_fit_02)
+```
+```{r}
+layout(matrix(c(1,2,3,4), nrow = 2, ncol = 2, byrow = TRUE))
+plot(1,main=1)
+plot(2,main=2)
+plot(3,main=3)
+plot(4,main=4)
+crime_fit_03 <- communities_1 %>% lm(ln_ViolentCrimes ~ ln_PopUnderPov, data = .)
+crime_fit_03_se <- crime_fit_03 %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+stargazer(crime_fit_03, type="text",se = list(crime_fit_03_se))
+coeftest(crime_fit_03, vconv = vcovHC(type = "HC1"))
+plot(crime_fit_03)
+lmtest::bptest(crime_fit_03)
+```
+```{r}
+layout(matrix(c(1,2,3,4), nrow = 2, ncol = 2, byrow = TRUE))
+plot(1,main=1)
+plot(2,main=2)
+plot(3,main=3)
+plot(4,main=4)
+crime_fit_06 <- communities_1 %>% lm(ln_ViolentCrimes ~ TotalPctDiv + ln_Illeg, data = .)
+crime_fit_06_se <- crime_fit_06 %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+stargazer(crime_fit_06, type="text",se = list(crime_fit_06_se))
+coeftest(crime_fit_06, vconv = vcovHC(type = "HC1"))
+plot(crime_fit_06)
+lmtest::bptest(crime_fit_06)
+```
+
+
+```{r}
+layout(matrix(c(1,2,3,4), nrow = 2, ncol = 2, byrow = TRUE))
+plot(1,main=1)
+plot(2,main=2)
+plot(3,main=3)
+plot(4,main=4)
+crime_fit_04 <- communities_1 %>% lm(ln_ViolentCrimes ~ ln_PopUnderPov +PctFam2Par, data = .)
+crime_fit_04_se <- crime_fit_04 %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+stargazer(crime_fit_04, type="text",se = list(crime_fit_04_se))
+coeftest(crime_fit_04, vconv = vcovHC(type = "HC1"))
+plot(crime_fit_04)
+lmtest::bptest(crime_fit_04)
+```
+```{r}
+layout(matrix(c(1,2,3,4), nrow = 2, ncol = 2, byrow = TRUE))
+plot(1,main=1)
+plot(2,main=2)
+plot(3,main=3)
+plot(4,main=4)
+crime_fit_05 <- communities_1 %>% lm(ln_ViolentCrimes ~ ln_Illeg + ln_PopUnderPov + TotalPctDiv, data = .)
+crime_fit_05_se <- crime_fit_05 %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+stargazer(crime_fit_05, type="text",se = list(crime_fit_05_se))
+coeftest(crime_fit_05, vconv = vcovHC(type = "HC1"))
+plot(crime_fit_05)
+lmtest::bptest(crime_fit_05)
+```
+```
+
+
