@@ -28,9 +28,10 @@ Violent crime has been increasing in the Unitied States since reaching a low in 
 
 ## Data Source 
 
-Our data source is the "Communities and Crime" data set located at the UCI Machine Learning Repository \footnote{(Dua, D. and Graff, C. (2019). UCI Machine Learning Repository [http://archive.ics.uci.edu/ml]. Irvine, CA: University of California, School of Information and Computer Science.)}. We have chosen the output variable of ViolentCrimesPerPop. We are currently evaluating several variables as part of our linear model. Family stability is being represented by PctIlleg (Percent Illegitimate Children), TotalPctDiv (Total Divorce Percent). 
+Our data source is the "Communities and Crime" data set located at the UCI Machine Learning Repository \footnote{(Dua, D. and Graff, C. (2019). UCI Machine Learning Repository [http://archive.ics.uci.edu/ml]. Irvine, CA: University of California, School of Information and Computer Science.)}. We have chosen the outcome variable of ViolentCrimesPerPop, total number of violent crimes per 100K population. We are currently evaluating several input variables as part of our study to represent family stability. Those variables are PctIlleg (Percent Illegitimate Children), and TotalPctDiv (Total Divorce Percent). 
  
 ## Unit of Observation
 
-Each row represents cross sectional data from counties in the United States. There is one observation for each county. We have data from 1994 of 3006 counties in the United States in the raw data set before any filtering. 
+Each row represents cross sectional data from counties in the United States. There is one observation for each county. We have data from 1994 of 3006 counties in the United States in the raw data set before any filtering. All numeric data was normalized into 
+the decimal range 0.00-1.00 using an Unsupervised, equal-interval binning method. Attributes retain their distribution and skew (hence for example the population attribute has a mean value of 0.06 because most communities are small). E.g. An attribute described as 'mean people per household' is actually the normalized (0-1) version of that value.
 
