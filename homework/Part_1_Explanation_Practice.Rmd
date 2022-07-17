@@ -12,18 +12,19 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Imagine you are working at a company that is considering whether to purchase a cybersecurity training for its employees. A colleague has gathered data about a set of Fortune 500 companies. They present the following regression estimate:
 
-| Outcome variable: Security Breaches         |                            |
-|---------------------------------------------|----------------------------|
-| Cybersecurity Training Hours                | 0.052\*\*                  |
-|                                             | (0.009)                    |
-|                                             |                            |
-| Emails Encrypted                            | -1.23\*\*\*                |
-|                                             | (0.01)                     |
-|                                             |                            |
-| Constant                                    | 10.790\*\*                 |
-|                                             | (5.078)                    |
-| ------------------------------              | -------------------------- |
-| Note: \*p\<0.5; \*\*p\<0.01; \*\*\*p\<0.001 |                            |
+
+|  Outcome variable: Security Breaches                    |
+|------------------------------|--------------------------|
+| Cybersecurity Training Hours |            0.052**       |    
+|                              |            (0.009)       | 
+|                              |                          |
+| Emails Encrypted             |           -1.23***       |
+|                              |            (0.01)        |
+|                              |                          |
+| Constant                     |           10.790**       |
+|                              |            (5.078)       | 
+|------------------------------|--------------------------|
+|Note:    \*p<0.5; \*\*p<0.01; \*\*\*p<0.001              |
 
 Here, Emails Encrypted is a covariate that measures the fraction of employees that reported using encrypted email either "all of the time" or "most of the time" in a questionnaire. Based on this regression, your colleague suggests that cybersecurity training leads to more security breaches, so your company should not invest in it.
 
@@ -43,7 +44,4 @@ You are convinced that the statistical assumptions underlying the estimate are s
 
 4.  Provide a one-sentence conclusion addressing the idea that your company should not invest in cybersecurity training.
 
-![](images/HW11_graph.png){width="183"}
-
--   As discussed in the first three questions and shown in the above graph, there are three violations (omitted variable, reverse causality and an outcome variable on the right hand side) for this one-equation structure model, so we can’t trust the coefficient of Cybersecurity Training Hours and believe the hypothesis testing conclusion that the company should not invest in cybersecurity training is incorrect.
-
+-   As discussed in the first three questions, there are three violations (omitted variable, reverse causality and an outcome variable on the right hand side) for this one-equation structure model, so we can’t trust the coefficient of Cybersecurity Training Hours and believe the hypothesis testing conclusion that the company should not invest in cybersecurity training is incorrect.
