@@ -1,0 +1,36 @@
+---
+title: "W203 Lab 2 Research Proposal"
+author: "Ed Brown, Daphne Lin, Linh Tran, Lisa Wu"
+date: "`r Sys.Date()`"
+output: pdf_document
+header-includes:
+ \usepackage{wrapfig}
+ \usepackage{float}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r load packages and set options, include=FALSE}
+library(tidyverse) 
+library(stargazer)
+library(sandwich)
+library(lmtest)
+
+theme_set(theme_bw())
+```
+
+
+## Research Question
+
+Violent crime has been increasing in the Unitied States since reaching a low in 2014 \footnote{https://crime-data-explorer.app.cloud.gov/pages/explorer/crime/crime-trend}. The Principal Components Consulting Group has been contracted by the U.S. Department of Health and Human Services (HHS) as part of their "Healthy People 2030 Program" \footnote{https://health.gov/healthypeople/priority-areas/social-determinants-health/literature-summaries/crime-and-violence} to identify primary causes of violent crime and how intervention from (HHS) may influence those contributing factors. Specifically, we are examining incidence of violent crime per population and several factors influencing violent crime, family stability, neighborhood conditions, income, and police.   
+
+## Data Source 
+
+Our data source is the "Communities and Crime" data set located at the UCI Machine Learning Repository \footnote{(Dua, D. and Graff, C. (2019). UCI Machine Learning Repository [http://archive.ics.uci.edu/ml]. Irvine, CA: University of California, School of Information and Computer Science.)}. We have chosen the output variable of ViolentCrimesPerPop. We are currently evaluating several variables as part of our linear model. Family stability is being represented by PctIlleg (Percent Illegitimate Children), TotalPctDiv (Total Divorce Percent). Candidate variables for neighborhood condition are HouseVacant (Number of Vacant Houses) and NumStreet (Number of People seen on the street). Income as measured by medIncome. Finally, we have several variables to represent police, however, there are significant amounts of missing values, which will likely relegate this measure to the omitted variable category in our final discussion. We could be including / excluding other variables as our models mature over the next two weeks. 
+ 
+## Unit of Observation
+
+Each row represents cross sectional data from counties in the United States. There is one observation for each county. We have data from 1994 of 3006 counties in the United States in the raw data set before any filtering. 
+
