@@ -1,5 +1,5 @@
 ---
-title: "Crime_Dataset_EDA"
+title: "Fuel Economy Gov Dataset EDA"
 author: "the_principal_components"
 date: "`r Sys.Date()`"
 output: pdf_document
@@ -33,51 +33,139 @@ theme_set(theme_bw())
 ```{r load data, message = FALSE, include=FALSE}
 mpg <- read.csv("../datasets/vehicles.csv",  header = TRUE)
 ```
+
+
 ```{r}
-only_trucks <-dplyr::filter(mpg, VClass == "Standard Pickup Trucks"  | VClass =="Standard Pickup Trucks 2WD" | VClass == "Standard Pickup Trucks 4WD")
-#mpg_has_luggage_and_passenger <-dplyr::filter(only_trucks, pv2 != 0 | pv4 != 0)
-#mpg_with_classifier <- mpg_has_luggage_and_passenger %>% mutate( isTwoDoor = (pv2 != 0))
-#two_door <- dplyr::filter(mpg_with_classifier, isTwoDoor == TRUE) %>% mutate( total_volume = pv2 + lv2)
-#four_door <- dplyr::filter(mpg_with_classifier, isTwoDoor == FALSE) %>% mutate( total_volume = pv4 + lv4)
-final_mpg_dataset <- only_trucks
-rm(list=c("two_door", "four_door", "mpg_has_luggage", "mpg_has_luggage_and_passenger", "mpg_with_classifier"))
+mpg$tCharger[mpg$tCharger == "T"] <- TRUE
+fix_cols <- c("tCharger")
+tmp_mpg <- mpg[fix_cols]
+tmp_mpg[is.na(tmp_mpg)] <- FALSE
+mpg[fix_cols] <- tmp_mpg
+rm(tmp_mpg, fix_cols)
+mpg$sCharger[mpg$sCharger == "S"] <- TRUE
+mpg$sCharger[mpg$sCharger != TRUE] <- FALSE
+mpg <- mpg %>% mutate( 
+  my_trans = case_when(
+            grepl("Automatic", trany) ~ "Automatic",
+            grepl("Manual", trany) ~ "Manual")
+  , .before = 1)
+
+mpg <- mpg %>% mutate( 
+  ln_comb08U = log(comb08U),
+  ln_displ = log(displ)
+)
+  
+mpg <- mpg %>% mutate( 
+  my_class = case_when(
+            grepl("Two Seaters", VClass) ~ "LG",
+            grepl("Minicompact Cars", VClass) ~ "XS",
+            grepl("Subcompact Cars", VClass) ~ "XS",
+            grepl("Compact Cars", VClass) ~ "SM",
+            grepl("Midsize Cars", VClass) ~ "SM",
+            grepl("Large Cars", VClass) ~ "MD",
+            grepl("Small Station Wagons", VClass) ~ "MD",
+            grepl("Mid-Size Cars Station Wagons", VClass) ~ "LG",
+            grepl("Large Cars Station Wagons", VClass) ~ "LG",
+            grepl("Small Pickup Trucks 2WD", VClass) ~ "LG",
+            grepl("Small Pickup Trucks 4WD", VClass) ~ "LG",
+            grepl("Small Sport Utility Vehicle 2WD", VClass) ~ "LG",
+            grepl("Small Sport Utility Vehicle 4WD", VClass) ~ "LG",
+            grepl("Midsize Station Wagons", VClass) ~ "LG",
+            grepl("Minivan - 2WD", VClass) ~ "LG",
+            grepl("Minivan - 4WD", VClass) ~ "LG",
+            grepl("Special Purpose Vehicle 2WD", VClass) ~ "XL",
+            grepl("Special Purpose Vehicle 4WD", VClass) ~ "XL",
+            grepl("Standard Pickup Trucks 2WD", VClass) ~ "XL",
+            grepl("Standard Pickup Trucks 4WD", VClass) ~ "XL",
+            grepl("Standard Sport Utility Vehicle 2WD", VClass) ~ "XL",
+            grepl("Standard Sport Utility Vehicle 4WD", VClass) ~ "XL",
+            grepl("Vans, Passenger Type", VClass) ~ "XL",
+            )
+  , .before = 1)
+mpg$my_trans <- as.factor(mpg$my_trans)
+mpg$my_class <- as.factor(mpg$my_class)
+mpg$drive <- as.factor(mpg$drive)
+mpg$VClass <- as.factor(mpg$VClass)
+mpg$startStop <- as.factor(mpg$startStop)
+final_mpg_dataset <- dplyr::filter(mpg, year == 2018 &  (fuelType1 != "Diesel" & fuelType1 != "Electricity"))
+
 ```
 
 ```{r check correlations}
-correlation_table(data=final_mpg_dataset, target="city08")
+correlation_table(data=final_mpg_dataset, target="comb08U")
 ```
-
-```{r plots }
-ggplot(final_mpg_dataset, aes(x=cylinders, y=city08)) + 
-  geom_point()+
-  geom_smooth(method=lm)
-
-ggplot(final_mpg_dataset, aes(x=displ, y=city08)) +
-  geom_point()+
-  geom_smooth(method=lm)
-
-ggplot(final_mpg_dataset, aes(x=engId, y=city08)) +
-  geom_point()+
-  geom_smooth(method=lm)
-
-ggplot(final_mpg_dataset, aes(x=trany, y=city08)) +
-  geom_point()+
-  geom_smooth(method=lm)
-
-ggplot(final_mpg_dataset, aes(x=VClass, y=city08)) +
-  geom_point()+
-  geom_smooth(method=lm)
-
-ggplot(final_mpg_dataset, aes(x=startStop , y=city08)) +
+\newpage
+```{r}
+ggplot(final_mpg_dataset, aes(x=displ, y=comb08U)) +
   geom_point()+
   geom_smooth(method=lm)
 ```
-```{r fits }
-mpg_fit_01 <- final_mpg_dataset %>% lm(city08 ~ displ, data = .)
-mpg_fit_01_se <- mpg_fit_01 %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
-stargazer(mpg_fit_01, type="text",se = list(mpg_fit_01_se))
-coeftest(mpg_fit_01, vconv = vcovHC(type = "HC1"))
-#mpg_fit_o1_vif = ols_vif_tol(mpg_fit_01)
-plot(mpg_fit_01)
-lmtest::bptest(mpg_fit_01)
+\newpage
+```{r}
+ggplot(final_mpg_dataset, aes(x=displ)) + 
+  geom_histogram(bins=20)
+```
+\newpage
+```{r}
+ggplot(final_mpg_dataset, aes(x=startStop, y=comb08U)) +
+  geom_boxplot(notch=TRUE, outlier.colour="red", outlier.shape=8)
+```
+\newpage
+```{r}
+ggplot(final_mpg_dataset, aes(x=tCharger, y=comb08U)) +
+  geom_boxplot(notch=TRUE, outlier.colour="red", outlier.shape=8)
+```
+\newpage
+```{r}
+ggplot(final_mpg_dataset, aes(x=sCharger, y=comb08U)) +
+  geom_boxplot(notch=TRUE, outlier.colour="red", outlier.shape=8)
+```
+\newpage
+```{r}
+ggplot(final_mpg_dataset, aes(x=my_class , y=comb08U)) +
+  geom_boxplot(notch=TRUE, outlier.colour="red", outlier.shape=8)
+```
+\newpage
+```{r}
+## 30% of the sample size
+smp_size <- floor(0.30 * nrow(final_mpg_dataset))
+
+## set the seed to make your partition reproducible
+set.seed(123)
+train_ind <- sample(seq_len(nrow(final_mpg_dataset)), size = smp_size)
+
+train_mpg <- final_mpg_dataset[train_ind, ]
+test_mpg <- final_mpg_dataset[-train_ind, ]
+rm(smp_size, train_ind)
+```
+
+\newpage
+```{r mpg base model }
+mpg_base_model <- final_mpg_dataset %>% lm(ln_comb08U ~ ln_displ + startStop, data = .)
+mpg_base_model_se <- mpg_base_model %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+stargazer(mpg_base_model, type="text",se = list(mpg_base_model_se))
+coeftest(mpg_base_model, vconv = vcovHC(type = "HC1"))
+#ols_vif_tol(mpg_base_model)
+plot(mpg_base_model)
+lmtest::bptest(mpg_base_model)
+```
+\newpage
+```{r mpg base startstop model }
+mpg_base_induction_model <- final_mpg_dataset %>% lm(ln_comb08U ~ ln_displ + startStop + tCharger + sCharger, data = .)
+mpg_base_induction_model_se <- mpg_base_induction_model %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+stargazer(mpg_base_induction_model, type="text",se = list(mpg_base_induction_model_se))
+coeftest(mpg_base_induction_model, vconv = vcovHC(type = "HC1"))
+ols_vif_tol(mpg_base_induction_model)
+plot(mpg_base_induction_model)
+lmtest::bptest(mpg_base_induction_model)
+```
+\newpage
+```{r mpg base induction class model }
+mpg_base_induction_class_model <- final_mpg_dataset %>% lm(ln_comb08U ~ ln_displ + startStop + tCharger + sCharger + my_class, data = .)
+mpg_base_induction_class_model_se <- mpg_base_induction_class_model %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+stargazer(mpg_base_induction_class_model, type="text",se = list(mpg_base_induction_class_model_se))
+coeftest(mpg_base_induction_class_model, vconv = vcovHC(type = "HC1"))
+ols_vif_tol(mpg_base_induction_class_model)
+plot(mpg_base_induction_class_model)
+lmtest::bptest(mpg_base_induction_class_model)
 ```
