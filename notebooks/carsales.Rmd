@@ -1,0 +1,118 @@
+---
+title: "test_Price_in_thousands"
+author: 'The Principal Components - Ed Brown, Daphne Lin, Linh Tran, Lisa Wu '
+date: "2022-07-19"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r check packages and install, include=FALSE}
+if(!require("Hmisc")){install.packages('Hmisc')}
+if(!require("funModeling")){install.packages('funModeling')}
+if(!require("olsrr")){install.packages('olsrr')}
+```
+```{r load packages and set options, include=FALSE}
+
+library(tidyverse) 
+library(stargazer)
+library(sandwich)
+library(lmtest)
+library(Hmisc)
+library(funModeling)
+library(olsrr)
+
+theme_set(theme_bw())
+```
+```{r}
+library(readr) 
+car_sales <- read_csv("../datasets/Car_sales.csv", 
+                       col_types = cols(Price_in_thousands = col_number(), 
+                                        cylinders = col_number(), displacement = col_number(), 
+                                        horsepower = col_number(), weight = col_number(), 
+                                        acceleration = col_number()))
+names(car_sales)
+```
+```{r transform variables}
+car_sales <- car_sales %>% 
+  mutate(
+    ln_sales_thousands = log(Sales_in_thousands),                      # This approximates the % change in sales
+    ln_price_thousands = log(Price_in_thousands),    # This approximates the % change in price    
+    ln_Horsepower = log(Horsepower),        # This approximates the % change in horsepower
+    ln_fuel_efficiency = log(Fuel_efficiency),    # This approximates the% change in fuel efficiency
+    ln_curb_weight = log(Curb_weight),                # This approximates the % change in weight
+    )
+
+```
+
+```{r}
+correlation_table(data=car_sales, target="Price_in_thousands")
+```
+
+```{r}
+ggplot(car_sales, aes(x=Price_in_thousands)) + 
+  geom_histogram(bins=60)
+ggplot(car_sales, aes(x=Sales_in_thousands)) + 
+  geom_histogram(bins=60)
+ggplot(car_sales, aes(x=Horsepower, y=Price_in_thousands)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(car_sales, aes(x=Horsepower)) + 
+  geom_histogram(bins=60)
+ggplot(car_sales, aes(x=Power_perf_factor, y=Price_in_thousands)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(car_sales, aes(x=Power_perf_factor)) + 
+  geom_histogram(bins=60)
+
+```
+
+```{r split the data into 30% training and 70% confirmation set, include=FALSE}
+## 30% of the sample size
+smp_size <- floor(0.30 * nrow(car_sales))
+
+## set the seed to make your partition reproducible
+set.seed(123)
+train_ind <- sample(seq_len(nrow(car_sales)), size = smp_size)
+
+train_car_sales <- car_sales[train_ind, ]
+test_car_sales <- car_sales[-train_ind, ]
+```
+
+# Use 30% Training Set to develop the models
+
+```{r develop model using 30% exploration set, use weight as the single variable, echo=TRUE}
+
+```
+```{r develop model using 30% exploration set, use weight and car age as two variables, echo=TRUE}
+
+```
+
+```{r develop model using 30% exploration set, use weight, car age and cylinders as three variables, echo=TRUE}
+
+```
+# Use 70% Test Set to validate the models
+
+```{r develop model using 70% test set, use weight as the single variable, echo=TRUE}
+
+```
+```{r develop model using 70% test set, use weight and car age as two variables, echo=TRUE}
+
+```
+
+```{r develop model using 30% exploration set, use weight, car age and horsepower as three variables, echo=TRUE}
+
+
+```
+
+```{r, test data linear model results, warning=FALSE}
+
+```
+
+#################################
+# For reference, below are linear model results using the full dataset (no split into training and test data) 
+
+
+
