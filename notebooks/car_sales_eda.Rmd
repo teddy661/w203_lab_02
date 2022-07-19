@@ -1,0 +1,181 @@
+---
+title: "test_Price_in_thousands"
+author: 'The Principal Components - Ed Brown, Daphne Lin, Linh Tran, Lisa Wu '
+date: "2022-07-19"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r check packages and install, include=FALSE}
+if(!require("Hmisc")){install.packages('Hmisc')}
+if(!require("funModeling")){install.packages('funModeling')}
+if(!require("olsrr")){install.packages('olsrr')}
+```
+```{r load packages and set options, include=FALSE}
+
+library(tidyverse) 
+library(stargazer)
+library(sandwich)
+library(lmtest)
+library(Hmisc)
+library(funModeling)
+library(olsrr)
+
+theme_set(theme_bw())
+```
+```{r}
+library(readr) 
+car_sales <- read_csv("../downloads/Car_sales.csv", 
+                       col_types = cols(Price_in_thousands = col_number(), 
+                                        cylinders = col_number(), displacement = col_number(), 
+                                        horsepower = col_number(), weight = col_number(), 
+                                        acceleration = col_number()))
+names(car_sales)
+head(car_sales, 10)
+```
+```{r transform variables}
+colnames(car_sales)[1] <- "manufacturer"
+colnames(car_sales)[2] <- "model"
+colnames(car_sales)[3] <- "sales_000"
+colnames(car_sales)[4] <- "resale_value"
+colnames(car_sales)[5] <- "vehicle_type"
+colnames(car_sales)[6] <- "price_000"
+colnames(car_sales)[7] <- "engine_size"
+colnames(car_sales)[8] <- "horsepower"
+colnames(car_sales)[9] <- "wheelbase"
+colnames(car_sales)[10] <- "width"
+colnames(car_sales)[11] <- "length"
+colnames(car_sales)[12] <- "curb_weight"
+colnames(car_sales)[13] <- "fuel_capacity"
+colnames(car_sales)[14] <- "fuel_efficiency"
+colnames(car_sales)[15] <- "latest_launch"
+colnames(car_sales)[16] <- "power_perf"
+
+
+head(car_sales,5)
+car_sales <- car_sales %>%
+  mutate(
+    price_resale_diff = price_000-resale_value,
+    ln_sales_000 = log(sales_000),                      # This approximates the % change in sales
+    ln_price_000 = log(price_000),    # This approximates the % change in price
+    ln_resale_value = log(resale_value),    # This approximates the % change in resale value
+    ln_engine_size = log(engine_size),
+    ln_horsepower = log(horsepower),        # This approximates the % change in horsepower
+    ln_wheelbase = log(wheelbase),
+    ln_width = log(width),
+    ln_curb_weight = log(curb_weight),
+    ln_fuel_capacity = log(fuel_capacity),
+    ln_fuel_efficiency = log(fuel_efficiency),
+    ln_power_perf = log(power_perf),
+    ln_price_resale_diff = log(price_resale_diff),
+    )
+#.6 R2, distribution looking good, then log, 
+```
+
+```{r}
+correlation_table(data=car_sales, target="price_000")
+```
+
+```{r}
+ 
+ggplot(car_sales, aes(x=price_000)) + 
+  geom_histogram(bins=60)
+ggplot(car_sales, aes(x=ln_price_000)) + 
+  geom_histogram(bins=60)
+
+ggplot(car_sales, aes(x=sales_000)) + 
+  geom_histogram(bins=60)
+ggplot(car_sales, aes(x=ln_sales_000)) + 
+  geom_histogram(bins=60)
+
+ggplot(car_sales, aes(x=resale_value)) + 
+  geom_histogram(bins=60)
+ggplot(car_sales, aes(x=ln_resale_value)) + 
+  geom_histogram(bins=60)
+
+ggplot(car_sales, aes(x=engine_size)) + 
+  geom_histogram(bins=60)
+ggplot(car_sales, aes(x=ln_engine_size)) + 
+  geom_histogram(bins=60)
+
+ggplot(car_sales, aes(x=horsepower)) + 
+  geom_histogram(bins=60)
+ggplot(car_sales, aes(x=ln_horsepower)) + 
+  geom_histogram(bins=60)
+
+ggplot(car_sales, aes(x=wheelbase)) + 
+  geom_histogram(bins=60)
+ggplot(car_sales, aes(x=ln_wheelbase)) + 
+  geom_histogram(bins=60)
+
+ggplot(car_sales, aes(x=width)) + 
+  geom_histogram(bins=60)
+ggplot(car_sales, aes(x=ln_width)) + 
+  geom_histogram(bins=60)
+
+ggplot(car_sales, aes(x=curb_weight)) + 
+  geom_histogram(bins=60)
+ggplot(car_sales, aes(x=ln_curb_weight)) + 
+  geom_histogram(bins=60)
+
+ggplot(car_sales, aes(x=fuel_capacity)) + 
+  geom_histogram(bins=60)
+ggplot(car_sales, aes(x=ln_fuel_capacity)) + 
+  geom_histogram(bins=60)
+
+ggplot(car_sales, aes(x=fuel_efficiency)) + 
+  geom_histogram(bins=60)
+ggplot(car_sales, aes(x=ln_fuel_efficiency)) + 
+  geom_histogram(bins=60)
+
+ggplot(car_sales, aes(x=power_perf)) + 
+  geom_histogram(bins=60)
+ggplot(car_sales, aes(x=ln_power_perf)) + 
+  geom_histogram(bins=60)
+
+ggplot(car_sales, aes(x=price_resale_diff)) + 
+  geom_histogram(bins=60)
+ggplot(car_sales, aes(x=ln_price_resale_diff)) + 
+  geom_histogram(bins=60)
+
+
+
+
+ggplot(car_sales, aes(x=ln_horsepower, y=ln_price_000)) +
+  geom_point()+
+  geom_smooth(method=lm)
+
+ggplot(car_sales, aes(x=ln_power_perf, y=ln_price_000)) +
+  geom_point()+
+  geom_smooth(method=lm)
+
+ggplot(car_sales, aes(x=ln_fuel_efficiency, y=ln_price_resale_diff)) +
+  geom_point()+
+  geom_smooth(method=lm)
+
+```
+
+
+```{r, test data linear model results, warning=FALSE}
+
+model_1 = lm(ln_price_000 ~ ln_fuel_efficiency + power_perf + ln_engine_size, data = car_sales)
+model_1
+
+stargazer(model_1, star.cutoffs = c(0.05, 0.01, 0.001),
+          title = "Car Price Linear Regression",
+          model_1,  
+          type = 'text',
+          covariate.labels = c("Fuel Efficiency", "Power Performance","Engine Size")
+)
+
+res<- resid(model_1)
+plot(fitted(model_1), res)
+abline(0,0)
+
+```
+```
+
+
