@@ -1,0 +1,134 @@
+---
+title: "test_mpg"
+author: "Lisa Wu"
+date: "2022-07-19"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r check packages and install, include=FALSE}
+if(!require("Hmisc")){install.packages('Hmisc')}
+if(!require("funModeling")){install.packages('funModeling')}
+```
+```{r load packages and set options, include=FALSE}
+
+library(tidyverse) 
+library(stargazer)
+library(sandwich)
+library(lmtest)
+library(Hmisc)
+library(funModeling)
+library(olsrr)
+
+theme_set(theme_bw())
+```
+```{r}
+library(readr) 
+auto_mpg_2 <- read_csv("../datasets/auto_mpg_2.csv", 
+                       col_types = cols(mpg = col_number(), 
+                                        cylinders = col_number(), displacement = col_number(), 
+                                        horsepower = col_number(), weight = col_number(), 
+                                        acceleration = col_number()))
+names(auto_mpg_2)
+```
+```{r}
+auto_mpg_2 <- auto_mpg_2 %>% 
+  mutate(
+    ln_mpg = log(mpg),
+    ln_acceleration = log(acceleration),
+    ln_horsepower = log(horsepower),
+    ln_displacement = log(displacement),
+    ln_weight = log(weight),
+    car_age = 93 - model_year
+)
+
+```
+
+```{r}
+correlation_table(data=auto_mpg_2, target="mpg")
+```
+
+```{r}
+ggplot(auto_mpg_2, aes(x=mpg)) + 
+  geom_histogram(bins=60)
+ggplot(auto_mpg_2, aes(x=ln_mpg)) + 
+  geom_histogram(bins=60)
+ggplot(auto_mpg_2, aes(x=car_age, y=mpg)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(auto_mpg_2, aes(x=car_age)) + 
+  geom_histogram(bins=60)
+ggplot(auto_mpg_2, aes(x=acceleration, y=mpg)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(auto_mpg_2, aes(x=acceleration)) + 
+  geom_histogram(bins=60)
+ggplot(auto_mpg_2, aes(x=cylinders, y=mpg)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(auto_mpg_2, aes(x=cylinders)) + 
+  geom_histogram(bins=60)
+ggplot(auto_mpg_2, aes(x=horsepower, y=mpg)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(auto_mpg_2, aes(x=horsepower)) + 
+  geom_histogram(bins=60)
+ggplot(auto_mpg_2, aes(x=displacement, y=mpg)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(auto_mpg_2, aes(x=displacement)) + 
+  geom_histogram(bins=60)
+ggplot(auto_mpg_2, aes(x=weight, y=mpg)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(auto_mpg_2, aes(x=weight)) + 
+  geom_histogram(bins=60)
+```
+```{r warning=FALSE}
+lm_1_auto_mgp <- auto_mpg_2 %>% lm(ln_mpg ~ weight, data = .)
+lm_1_auto_mgp_se <- lm_1_auto_mgp %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+stargazer(lm_1_auto_mgp, type="text",se = list(lm_1_auto_mgp_se))
+coeftest(lm_1_auto_mgp, vconv = vcovHC(type = "HC1"))
+# fit_o1_vif = ols_vif_tol(lm_1_auto_mgp)
+plot(lm_1_auto_mgp)
+lmtest::bptest(lm_1_auto_mgp)
+```
+```{r warning=FALSE}
+lm_2_auto_mgp <- auto_mpg_2 %>% lm(ln_mpg ~ weight + car_age, data = .)
+lm_2_auto_mgp_se <- lm_2_auto_mgp %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+stargazer(lm_2_auto_mgp, type="text",se = list(lm_2_auto_mgp_se))
+coeftest(lm_2_auto_mgp, vconv = vcovHC(type = "HC1"))
+# fit_o1_vif = ols_vif_tol(lm_1_auto_mgp)
+plot(lm_2_auto_mgp)
+lmtest::bptest(lm_2_auto_mgp)
+```
+```{r}
+lm_3_auto_mgp <- auto_mpg_2 %>% lm(ln_mpg ~ weight + ln_displacement + car_age, data = .)
+lm_3_auto_mgp_se <- lm_3_auto_mgp %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+stargazer(lm_3_auto_mgp, type="text",se = list(lm_3_auto_mgp_se))
+coeftest(lm_3_auto_mgp, vconv = vcovHC(type = "HC1"))
+fit_3_vif = ols_vif_tol(lm_3_auto_mgp)
+plot(lm_3_auto_mgp)
+lmtest::bptest(lm_3_auto_mgp)
+fit_3_vif
+```
+```{r}
+lm_4_auto_mgp <- auto_mpg_2 %>% lm(ln_mpg ~ weight + ln_displacement + car_age + ln_horsepower, data = .)
+lm_4_auto_mgp_se <- lm_4_auto_mgp %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+stargazer(lm_4_auto_mgp, type="text",se = list(lm_4_auto_mgp_se))
+coeftest(lm_4_auto_mgp, vconv = vcovHC(type = "HC1"))
+fit_4_vif = ols_vif_tol(lm_4_auto_mgp)
+plot(lm_4_auto_mgp)
+lmtest::bptest(lm_4_auto_mgp)
+fit_4_vif
+```
+```{r}
+stargazer(star.cutoffs = c(0.05, 0.01, 0.001),
+          title = "Auto MPG linear regression",
+          lm_1_auto_mgp, lm_2_auto_mgp, lm_3_auto_mgp, lm_4_auto_mgp, type="text",
+          se = list(lm_1_auto_mgp_se, lm_2_auto_mgp_se, lm_3_auto_mgp_se, lm_4_auto_mgp_se))
+```
+
