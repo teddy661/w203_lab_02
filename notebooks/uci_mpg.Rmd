@@ -1,8 +1,8 @@
 ---
 title: "test_mpg"
-author: "Lisa Wu"
+author: 'The Principal Components - Ed Brown, Daphne Lin, Linh Tran, Lisa Wu '
 date: "2022-07-19"
-output: html_document
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
@@ -34,15 +34,15 @@ auto_mpg_2 <- read_csv("../datasets/auto_mpg_2.csv",
                                         acceleration = col_number()))
 names(auto_mpg_2)
 ```
-```{r}
+```{r transform variables}
 auto_mpg_2 <- auto_mpg_2 %>% 
   mutate(
-    ln_mpg = log(mpg),
-    ln_acceleration = log(acceleration),
-    ln_horsepower = log(horsepower),
-    ln_displacement = log(displacement),
-    ln_weight = log(weight),
-    car_age = 93 - model_year
+    ln_mpg = log(mpg),                      # This approximates the % change in mpg
+    ln_acceleration = log(acceleration),    # This approximates the % change in acceleration     
+    ln_horsepower = log(horsepower),        # This approximates the % change in horsepower.  Engine displacement is a determining factor in the horsepower
+    ln_displacement = log(displacement),    # This approximates the% change in displacement.  More cylinders can increase displacement
+    ln_weight = log(weight),                # This approximates the % change in weight
+    car_age = 93 - model_year               # since this dataset was collected in 1993, we calculate the car age by using 1993 as the base year
 )
 
 ```
@@ -76,6 +76,11 @@ ggplot(auto_mpg_2, aes(x=horsepower, y=mpg)) +
   geom_smooth(method=lm)
 ggplot(auto_mpg_2, aes(x=horsepower)) + 
   geom_histogram(bins=60)
+ggplot(auto_mpg_2, aes(x=ln_horsepower, y=ln_mpg)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(auto_mpg_2, aes(x=ln_horsepower)) + 
+  geom_histogram(bins=60)
 ggplot(auto_mpg_2, aes(x=displacement, y=mpg)) +
   geom_point()+
   geom_smooth(method=lm)
@@ -86,9 +91,127 @@ ggplot(auto_mpg_2, aes(x=weight, y=mpg)) +
   geom_smooth(method=lm)
 ggplot(auto_mpg_2, aes(x=weight)) + 
   geom_histogram(bins=60)
+ggplot(auto_mpg_2, aes(x=ln_weight, y=ln_mpg)) +
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(auto_mpg_2, aes(x=ln_weight)) + 
+  geom_histogram(bins=60)
+
 ```
-```{r warning=FALSE}
-lm_1_auto_mgp <- auto_mpg_2 %>% lm(ln_mpg ~ weight, data = .)
+
+```{r split the data into 30% training and 70% confirmation set, include=FALSE}
+## 30% of the sample size
+smp_size <- floor(0.30 * nrow(auto_mpg_2))
+
+## set the seed to make your partition reproducible
+set.seed(123)
+train_ind <- sample(seq_len(nrow(auto_mpg_2)), size = smp_size)
+
+train_mpg <- auto_mpg_2[train_ind, ]
+test_mpg <- auto_mpg_2[-train_ind, ]
+```
+
+# Use 30% Training Set to develop the models
+
+```{r develop model using 30% exploration set, use weight as the single variable, echo=TRUE}
+layout(matrix(c(1,2,3,4), nrow = 2, ncol = 2, byrow = TRUE))
+plot(1,main=1)
+plot(2,main=2)
+plot(3,main=3)
+plot(4,main=4)
+train_mpg_fit <- train_mpg %>% lm(ln_mpg ~ ln_weight, data = .)
+train_mpg_fit_se <- train_mpg_fit %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+coeftest(train_mpg_fit, vconv = vcovHC(type = "HC1"))
+plot(train_mpg_fit)
+lmtest::bptest(train_mpg_fit)
+```
+```{r develop model using 30% exploration set, use weight and car age as two variables, echo=TRUE}
+layout(matrix(c(1,2,3,4), nrow = 2, ncol = 2, byrow = TRUE))
+plot(1,main=1)
+plot(2,main=2)
+plot(3,main=3)
+plot(4,main=4)
+train_mpg_fit_2 <- train_mpg %>% lm(ln_mpg ~ ln_weight + car_age, data = .)
+train_mpg_fit_2_se <- train_mpg_fit %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+coeftest(train_mpg_fit_2, vconv = vcovHC(type = "HC1"))
+plot(train_mpg_fit_2)
+lmtest::bptest(train_mpg_fit_2)
+fit_3_vif = ols_vif_tol(train_mpg_fit_2)
+fit_3_vif
+```
+
+```{r develop model using 30% exploration set, use weight, car age and cylinders as three variables, echo=TRUE}
+layout(matrix(c(1,2,3,4), nrow = 2, ncol = 2, byrow = TRUE))
+plot(1,main=1)
+plot(2,main=2)
+plot(3,main=3)
+plot(4,main=4)
+train_mpg_fit_3 <- train_mpg %>% lm(ln_mpg ~ ln_weight + car_age + cylinders, data = .)
+train_mpg_fit_3_se <- train_mpg_fit_3 %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+coeftest(train_mpg_fit_3, vconv = vcovHC(type = "HC1"))
+plot(train_mpg_fit_3)
+lmtest::bptest(train_mpg_fit_3)
+fit_3_vif = ols_vif_tol(train_mpg_fit_3)
+fit_3_vif
+```
+# Use 70% Test Set to validate the models
+
+```{r develop model using 70% test set, use weight as the single variable, echo=TRUE}
+layout(matrix(c(1,2,3,4), nrow = 2, ncol = 2, byrow = TRUE))
+plot(1,main=1)
+plot(2,main=2)
+plot(3,main=3)
+plot(4,main=4)
+test_mpg_fit <- test_mpg %>% lm(ln_mpg ~ ln_weight, data = .)
+test_mpg_fit_se <- test_mpg_fit %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+coeftest(test_mpg_fit, vconv = vcovHC(type = "HC1"))
+plot(test_mpg_fit)
+lmtest::bptest(test_mpg_fit)
+```
+```{r develop model using 70% test set, use weight and car age as two variables, echo=TRUE}
+layout(matrix(c(1,2,3,4), nrow = 2, ncol = 2, byrow = TRUE))
+plot(1,main=1)
+plot(2,main=2)
+plot(3,main=3)
+plot(4,main=4)
+test_mpg_fit_2 <- test_mpg %>% lm(ln_mpg ~ ln_weight + car_age, data = .)
+test_mpg_fit_2_se <- test_mpg_fit %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+coeftest(test_mpg_fit_2, vconv = vcovHC(type = "HC1"))
+plot(test_mpg_fit_2)
+lmtest::bptest(test_mpg_fit_2)
+fit_3_vif = ols_vif_tol(test_mpg_fit_2)
+fit_3_vif
+```
+
+```{r develop model using 30% exploration set, use weight, car age and horsepower as three variables, echo=TRUE}
+layout(matrix(c(1,2,3,4), nrow = 2, ncol = 2, byrow = TRUE))
+plot(1,main=1)
+plot(2,main=2)
+plot(3,main=3)
+plot(4,main=4)
+test_mpg_fit_3 <- test_mpg %>% lm(ln_mpg ~ ln_weight + car_age + ln_horsepower, data = .)
+test_mpg_fit_3_se <- test_mpg_fit_3 %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+coeftest(test_mpg_fit_3, vconv = vcovHC(type = "HC1"))
+plot(test_mpg_fit_3)
+lmtest::bptest(test_mpg_fit_3)
+fit_3_vif = ols_vif_tol(test_mpg_fit_3)
+fit_3_vif
+
+```
+
+```{r, test data linear model results, warning=FALSE}
+stargazer(star.cutoffs = c(0.05, 0.01, 0.001),
+          title = "Auto MPG Linear Regression",
+          test_mpg_fit, test_mpg_fit_2, test_mpg_fit_3, type="text",
+          covariate.labels = c("weight", "car age", "Horsepower","Constant"),
+          se = list(test_mpg_fit_se, test_mpg_fit_2_se, test_mpg_fit_3_se))
+```
+
+#################################
+# For reference, below are linear model results using the full dataset (no split into training and test data) 
+
+```{r use weight as the single variable, warning=FALSE}
+lm_1_auto_mgp <- auto_mpg_2 %>% lm(ln_mpg ~ ln_weight, data = .)
 lm_1_auto_mgp_se <- lm_1_auto_mgp %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
 stargazer(lm_1_auto_mgp, type="text",se = list(lm_1_auto_mgp_se))
 coeftest(lm_1_auto_mgp, vconv = vcovHC(type = "HC1"))
@@ -96,17 +219,18 @@ coeftest(lm_1_auto_mgp, vconv = vcovHC(type = "HC1"))
 plot(lm_1_auto_mgp)
 lmtest::bptest(lm_1_auto_mgp)
 ```
-```{r warning=FALSE}
-lm_2_auto_mgp <- auto_mpg_2 %>% lm(ln_mpg ~ weight + car_age, data = .)
+```{r use weight and car age as two variables, warning=FALSE}
+lm_2_auto_mgp <- auto_mpg_2 %>% lm(ln_mpg ~ ln_weight + car_age, data = .)
 lm_2_auto_mgp_se <- lm_2_auto_mgp %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
 stargazer(lm_2_auto_mgp, type="text",se = list(lm_2_auto_mgp_se))
 coeftest(lm_2_auto_mgp, vconv = vcovHC(type = "HC1"))
-# fit_o1_vif = ols_vif_tol(lm_1_auto_mgp)
+fit_2_vif = ols_vif_tol(lm_2_auto_mgp)
 plot(lm_2_auto_mgp)
 lmtest::bptest(lm_2_auto_mgp)
+fit_2_vif
 ```
 ```{r}
-lm_3_auto_mgp <- auto_mpg_2 %>% lm(ln_mpg ~ weight + ln_displacement + car_age, data = .)
+lm_3_auto_mgp <- auto_mpg_2 %>% lm(ln_mpg ~ ln_weight + ln_horsepower + car_age, data = .)
 lm_3_auto_mgp_se <- lm_3_auto_mgp %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
 stargazer(lm_3_auto_mgp, type="text",se = list(lm_3_auto_mgp_se))
 coeftest(lm_3_auto_mgp, vconv = vcovHC(type = "HC1"))
@@ -116,7 +240,7 @@ lmtest::bptest(lm_3_auto_mgp)
 fit_3_vif
 ```
 ```{r}
-lm_4_auto_mgp <- auto_mpg_2 %>% lm(ln_mpg ~ weight + ln_displacement + car_age + ln_horsepower, data = .)
+lm_4_auto_mgp <- auto_mpg_2 %>% lm(ln_mpg ~ ln_weight + car_age + cylinders, data = .)
 lm_4_auto_mgp_se <- lm_4_auto_mgp %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
 stargazer(lm_4_auto_mgp, type="text",se = list(lm_4_auto_mgp_se))
 coeftest(lm_4_auto_mgp, vconv = vcovHC(type = "HC1"))
@@ -131,4 +255,5 @@ stargazer(star.cutoffs = c(0.05, 0.01, 0.001),
           lm_1_auto_mgp, lm_2_auto_mgp, lm_3_auto_mgp, lm_4_auto_mgp, type="text",
           se = list(lm_1_auto_mgp_se, lm_2_auto_mgp_se, lm_3_auto_mgp_se, lm_4_auto_mgp_se))
 ```
+
 
