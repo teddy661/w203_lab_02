@@ -13,6 +13,8 @@ knitr::opts_chunk$set(echo = TRUE)
 if(!require("Hmisc")){install.packages('Hmisc')}
 if(!require("funModeling")){install.packages('funModeling')}
 if(!require("olsrr")){install.packages('olsrr')}
+if(!require("ggpubr")){install.packages('ggpubr')}
+
 ```
 ```{r load packages and set options, include=FALSE}
 
@@ -23,12 +25,13 @@ library(lmtest)
 library(Hmisc)
 library(funModeling)
 library(olsrr)
+library(ggpubr)
 
 theme_set(theme_bw())
 ```
 ```{r}
 library(readr) 
-car_sales <- read_csv("../downloads/Car_sales.csv", 
+car_sales <- read_csv("../datasets/Car_sales.csv", 
                        col_types = cols(Price_in_thousands = col_number(), 
                                         cylinders = col_number(), displacement = col_number(), 
                                         horsepower = col_number(), weight = col_number(), 
@@ -53,7 +56,6 @@ colnames(car_sales)[13] <- "fuel_capacity"
 colnames(car_sales)[14] <- "fuel_efficiency"
 colnames(car_sales)[15] <- "latest_launch"
 colnames(car_sales)[16] <- "power_perf"
-
 
 head(car_sales,5)
 car_sales <- car_sales %>%
@@ -80,84 +82,189 @@ correlation_table(data=car_sales, target="price_000")
 ```
 
 ```{r}
- 
-ggplot(car_sales, aes(x=price_000)) + 
-  geom_histogram(bins=60)
-ggplot(car_sales, aes(x=ln_price_000)) + 
-  geom_histogram(bins=60)
 
-ggplot(car_sales, aes(x=sales_000)) + 
-  geom_histogram(bins=60)
-ggplot(car_sales, aes(x=ln_sales_000)) + 
-  geom_histogram(bins=60)
+A <- ggplot(car_sales, aes(x=price_000)) + geom_histogram(bins=60)
+B <- ggplot(car_sales, aes(x=ln_price_000)) + geom_histogram(bins=60)
 
-ggplot(car_sales, aes(x=resale_value)) + 
-  geom_histogram(bins=60)
-ggplot(car_sales, aes(x=ln_resale_value)) + 
-  geom_histogram(bins=60)
+C <- ggplot(car_sales, aes(x=sales_000)) + geom_histogram(bins=60)
+D <- ggplot(car_sales, aes(x=ln_sales_000)) + geom_histogram(bins=60)
 
-ggplot(car_sales, aes(x=engine_size)) + 
-  geom_histogram(bins=60)
-ggplot(car_sales, aes(x=ln_engine_size)) + 
-  geom_histogram(bins=60)
+E <- ggplot(car_sales, aes(x=resale_value)) + geom_histogram(bins=60)
+F <- ggplot(car_sales, aes(x=ln_resale_value)) + geom_histogram(bins=60)
 
-ggplot(car_sales, aes(x=horsepower)) + 
-  geom_histogram(bins=60)
-ggplot(car_sales, aes(x=ln_horsepower)) + 
-  geom_histogram(bins=60)
+G <- ggplot(car_sales, aes(x=engine_size)) + geom_histogram(bins=60)
+H <- ggplot(car_sales, aes(x=ln_engine_size)) + geom_histogram(bins=60)
 
-ggplot(car_sales, aes(x=wheelbase)) + 
-  geom_histogram(bins=60)
-ggplot(car_sales, aes(x=ln_wheelbase)) + 
-  geom_histogram(bins=60)
+I <- ggplot(car_sales, aes(x=horsepower)) + geom_histogram(bins=60)
+J <- ggplot(car_sales, aes(x=ln_horsepower)) + geom_histogram(bins=60)
 
-ggplot(car_sales, aes(x=width)) + 
-  geom_histogram(bins=60)
-ggplot(car_sales, aes(x=ln_width)) + 
-  geom_histogram(bins=60)
+K <- ggplot(car_sales, aes(x=wheelbase)) + geom_histogram(bins=60)
+L <- ggplot(car_sales, aes(x=ln_wheelbase)) + geom_histogram(bins=60)
 
-ggplot(car_sales, aes(x=curb_weight)) + 
-  geom_histogram(bins=60)
-ggplot(car_sales, aes(x=ln_curb_weight)) + 
-  geom_histogram(bins=60)
+M <- ggplot(car_sales, aes(x=width)) + geom_histogram(bins=60)
+N <- ggplot(car_sales, aes(x=ln_width)) + geom_histogram(bins=60)
 
-ggplot(car_sales, aes(x=fuel_capacity)) + 
-  geom_histogram(bins=60)
-ggplot(car_sales, aes(x=ln_fuel_capacity)) + 
-  geom_histogram(bins=60)
+O <- ggplot(car_sales, aes(x=curb_weight)) + geom_histogram(bins=60)
+P <- ggplot(car_sales, aes(x=ln_curb_weight)) + geom_histogram(bins=60)
 
-ggplot(car_sales, aes(x=fuel_efficiency)) + 
-  geom_histogram(bins=60)
-ggplot(car_sales, aes(x=ln_fuel_efficiency)) + 
-  geom_histogram(bins=60)
+Q <- ggplot(car_sales, aes(x=fuel_capacity)) + geom_histogram(bins=60)
+R <- ggplot(car_sales, aes(x=ln_fuel_capacity)) + geom_histogram(bins=60)
 
-ggplot(car_sales, aes(x=power_perf)) + 
-  geom_histogram(bins=60)
-ggplot(car_sales, aes(x=ln_power_perf)) + 
-  geom_histogram(bins=60)
+S <- ggplot(car_sales, aes(x=fuel_efficiency)) +  geom_histogram(bins=60)
+T <- ggplot(car_sales, aes(x=ln_fuel_efficiency)) +  geom_histogram(bins=60)
 
-ggplot(car_sales, aes(x=price_resale_diff)) + 
-  geom_histogram(bins=60)
-ggplot(car_sales, aes(x=ln_price_resale_diff)) + 
-  geom_histogram(bins=60)
+U <- ggplot(car_sales, aes(x=power_perf)) +  geom_histogram(bins=60)
+V <- ggplot(car_sales, aes(x=ln_power_perf)) + geom_histogram(bins=60)
 
-
-
-
-ggplot(car_sales, aes(x=ln_horsepower, y=ln_price_000)) +
-  geom_point()+
-  geom_smooth(method=lm)
-
-ggplot(car_sales, aes(x=ln_power_perf, y=ln_price_000)) +
-  geom_point()+
-  geom_smooth(method=lm)
-
-ggplot(car_sales, aes(x=ln_fuel_efficiency, y=ln_price_resale_diff)) +
-  geom_point()+
-  geom_smooth(method=lm)
+W <- ggplot(car_sales, aes(x=price_resale_diff)) + geom_histogram(bins=60)
+X <- ggplot(car_sales, aes(x=ln_price_resale_diff)) + geom_histogram(bins=60)
 
 ```
+```{r}
+ggarrange(A, B, C, D, E, F, G, H + rremove("x.text"), 
+          labels = c("A", "B", "C", "D", "E", "F", "G", "H"),
+          ncol = 2, nrow = 4)
+```
+# Log transformation improves the distribution to be more normal for: Price, Sales, Resale and Engine Size
 
+```{r}
+ggarrange(I, J, K, L, M, N, O, P + rremove("x.text"), 
+          labels = c("I", "J", "K", "L", "M", "N", "O", "P"),
+          ncol = 2, nrow = 4)
+```
+```{r}
+ggarrange(Q, R, S, T, U, V, W, X + rremove("x.text"), 
+          labels = c("Q", "R", "S", "T", "U", "V", "W", "X"),
+          ncol = 2, nrow = 4)
+```
+# From all graphs above, log transformation improves the distribution to be more normal for: Price, Sales, Resale, Engine Size, weight, width, horsepower, fuel capacility, fuel efficiency, power_perf
+
+```{r}
+Y <- ggplot(car_sales, aes(x=ln_horsepower, y=ln_price_000)) +  geom_point()+ geom_smooth(method=lm)
+
+Z <- ggplot(car_sales, aes(x=ln_power_perf, y=ln_price_000)) + geom_point()+ geom_smooth(method=lm)
+
+AA <- ggplot(car_sales, aes(x=ln_fuel_efficiency, y=ln_price_000)) +  geom_point()+ geom_smooth(method=lm)
+AB <- ggplot(car_sales, aes(x=ln_curb_weight, y=ln_price_000)) +  geom_point()+ geom_smooth(method=lm)
+AC <- ggplot(car_sales, aes(x=ln_width, y=ln_price_000)) +  geom_point()+ geom_smooth(method=lm)
+AD <- ggplot(car_sales, aes(x=ln_fuel_capacity, y=ln_price_000)) +  geom_point()+ geom_smooth(method=lm)
+AE <- ggplot(car_sales, aes(x=ln_fuel_capacity, y=ln_fuel_efficiency)) +  geom_point()+ geom_smooth(method=lm)
+AF <- ggplot(car_sales, aes(x=ln_curb_weight, y=ln_fuel_capacity)) +  geom_point()+ geom_smooth(method=lm)
+```
+
+```{r}
+ggarrange(Y, Z, AA, AB, AC, AD, AE, AF + rremove("x.text"), 
+          # labels = c("Y", "Z", "AA", "AB", "AC", "AD", "AE","AF"),
+          ncol = 2, nrow = 4)
+```
+```{r}
+layout(matrix(c(1,2,3,4), nrow = 2, ncol = 2, byrow = TRUE))
+plot(1,main=1)
+plot(2,main=2)
+plot(3,main=3)
+plot(4,main=4)
+car_price_base <- car_sales %>% lm(ln_price_000 ~ ln_power_perf, data = .)
+car_price_base_se <- car_price_base %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+stargazer(car_price_base, type="text",se = list(car_price_base_se))
+coeftest(car_price_base, vconv = vcovHC(type = "HC1"))
+plot(car_price_base)
+lmtest::bptest(car_price_base)
+
+```
+```{r}
+layout(matrix(c(1,2,3,4), nrow = 2, ncol = 2, byrow = TRUE))
+plot(1,main=1)
+plot(2,main=2)
+plot(3,main=3)
+plot(4,main=4)
+car_price_base2 <- car_sales %>% lm(ln_price_000 ~ ln_curb_weight, data = .)
+car_price_base2_se <- car_price_base2 %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+stargazer(car_price_base2, type="text",se = list(car_price_base2_se))
+coeftest(car_price_base2, vconv = vcovHC(type = "HC1"))
+plot(car_price_base2)
+lmtest::bptest(car_price_base2)
+```
+```{r}
+layout(matrix(c(1,2,3,4), nrow = 2, ncol = 2, byrow = TRUE))
+plot(1,main=1)
+plot(2,main=2)
+plot(3,main=3)
+plot(4,main=4)
+car_price_base3 <- car_sales %>% lm(ln_price_000 ~ ln_horsepower, data = .)
+car_price_base3_se <- car_price_base3 %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+stargazer(car_price_base3, type="text",se = list(car_price_base3_se))
+coeftest(car_price_base3, vconv = vcovHC(type = "HC1"))
+plot(car_price_base3)
+lmtest::bptest(car_price_base3)
+```
+```{r}
+layout(matrix(c(1,2,3,4), nrow = 2, ncol = 2, byrow = TRUE))
+plot(1,main=1)
+plot(2,main=2)
+plot(3,main=3)
+plot(4,main=4)
+car_price_base4 <- car_sales %>% lm(ln_price_000 ~ ln_engine_size, data = .)
+car_price_base4_se <- car_price_base4 %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+stargazer(car_price_base4, type="text",se = list(car_price_base4_se))
+coeftest(car_price_base4, vconv = vcovHC(type = "HC1"))
+plot(car_price_base4)
+lmtest::bptest(car_price_base4)
+```
+```{r compare base model 1 variable only}
+stargazer(star.cutoffs = c(0.05, 0.01, 0.001),
+          title = "Car Price Linear Regression One Variable Model Only",
+          car_price_base, car_price_base2, car_price_base3, car_price_base4, type="text",
+          covariate.labels = c("Power Performance", "Weight", "Horsepower","Engine Size"),
+          se = list(car_price_base_se, car_price_base2_se, car_price_base3_se, car_price_base4_se))
+```
+```{r}
+layout(matrix(c(1,2,3,4), nrow = 2, ncol = 2, byrow = TRUE))
+plot(1,main=1)
+plot(2,main=2)
+plot(3,main=3)
+plot(4,main=4)
+car_price_plus <- car_sales %>% lm(ln_price_000 ~ ln_power_perf + ln_engine_size, data = .)
+car_price_plus_se <- car_price_plus %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+stargazer(car_price_plus, type="text",se = list(car_price_plus_se))
+coeftest(car_price_plus, vconv = vcovHC(type = "HC1"))
+plot(car_price_plus)
+lmtest::bptest(car_price_plus)
+```
+```{r}
+layout(matrix(c(1,2,3,4), nrow = 2, ncol = 2, byrow = TRUE))
+plot(1,main=1)
+plot(2,main=2)
+plot(3,main=3)
+plot(4,main=4)
+car_price_sup <- car_sales %>% lm(ln_price_000 ~ ln_power_perf + ln_engine_size + ln_curb_weight + ln_wheelbase, data = .)
+car_price_sup_se <- car_price_sup %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+stargazer(car_price_sup, type="text",se = list(car_price_sup_se))
+coeftest(car_price_sup, vconv = vcovHC(type = "HC1"))
+plot(car_price_sup)
+lmtest::bptest(car_price_sup)
+```
+```{r}
+layout(matrix(c(1,2,3,4), nrow = 2, ncol = 2, byrow = TRUE))
+plot(1,main=1)
+plot(2,main=2)
+plot(3,main=3)
+plot(4,main=4)
+car_price_plus2 <- car_sales %>% lm(ln_price_000 ~ ln_power_perf + ln_engine_size + ln_fuel_efficiency, data = .)
+car_price_plus2_se <- car_price_plus2 %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+stargazer(car_price_plus2, type="text",se = list(car_price_plus2_se))
+coeftest(car_price_plus2, vconv = vcovHC(type = "HC1"))
+plot(car_price_plus2)
+lmtest::bptest(car_price_plus2)
+```
+
+
+```{r  test data linear model results, warning=FALSE}
+stargazer(star.cutoffs = c(0.05, 0.01, 0.001),
+          title = "Car Price Linear Regression",
+          car_price_base, car_price_plus, car_price_plus2, car_price_sup, type="text",
+          covariate.labels = c("Power Performance", "Engine Size", "Fuel Efficiency", "Car Weight","Wheel Base"),
+          se = list(car_price_base_se, car_price_plus_se, car_price_plus2_se, car_price_sup_se))
+```
 
 ```{r, test data linear model results, warning=FALSE}
 
@@ -177,5 +284,4 @@ abline(0,0)
 
 ```
 ```
-
 
