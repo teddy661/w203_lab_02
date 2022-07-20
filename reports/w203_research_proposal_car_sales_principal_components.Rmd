@@ -1,0 +1,37 @@
+---
+title: "W203 Lab 2 Research Proposal"
+author: "Ed Brown, Daphne Lin, Linh Tran, Lisa Wu"
+date: "`r Sys.Date()`"
+output: pdf_document
+header-includes:
+ \usepackage{wrapfig}
+ \usepackage{float}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r load packages and set options, include=FALSE}
+library(tidyverse) 
+library(stargazer)
+library(sandwich)
+library(lmtest)
+
+theme_set(theme_bw())
+```
+
+## Research Question
+
+Principal Components Consulting Group has been contracted by a big three automotive company to identify key factors in developing a pricing model for new automobile introduction. Specifically, we are examining setting manufacturer suggested retail price (MSRP) and how power performance factor can improve pricing accuracy.    
+
+## Data Source
+
+Our data source is from somwhere\footnote{https://www.somewhere.com}. We have chosen the outcome variable of price_in_thousands, which is the MSRP price for a new vehicle We are currently evaluating several input variables to operationalize this test.  Based on our background research, preliminary exploratory data analysis and statistical testing, we have chosen two primary variables - Power_perf_factor
+ (power performance factor) as the primary variable of interest. We will augment this base case with additional variables such as fuel efficiency weight or horsepower to augment additional models.
+ 
+## Unit of Observation
+
+Each row of the data set represents cross sectional data and is a single vehicle model available for purchase. There is one observation per vehicle. There are a couple aggregate columns in the data e.g. resale, however, we will not leverage them as part of this study.
+
+
