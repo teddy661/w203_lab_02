@@ -229,6 +229,8 @@ stargazer(car_price_plus, type="text",se = list(car_price_plus_se))
 coeftest(car_price_plus, vconv = vcovHC(type = "HC1"))
 plot(car_price_plus)
 lmtest::bptest(car_price_plus)
+fit_plus_vif = ols_vif_tol(car_price_plus)
+fit_plus_vif
 ```
 ```{r}
 layout(matrix(c(1,2,3,4), nrow = 2, ncol = 2, byrow = TRUE))
@@ -242,6 +244,8 @@ stargazer(car_price_sup, type="text",se = list(car_price_sup_se))
 coeftest(car_price_sup, vconv = vcovHC(type = "HC1"))
 plot(car_price_sup)
 lmtest::bptest(car_price_sup)
+fit_sup_vif = ols_vif_tol(car_price_sup)
+fit_sup_vif
 ```
 ```{r}
 layout(matrix(c(1,2,3,4), nrow = 2, ncol = 2, byrow = TRUE))
@@ -255,6 +259,8 @@ stargazer(car_price_plus2, type="text",se = list(car_price_plus2_se))
 coeftest(car_price_plus2, vconv = vcovHC(type = "HC1"))
 plot(car_price_plus2)
 lmtest::bptest(car_price_plus2)
+fit_plus2_vif = ols_vif_tol(car_price_plus2)
+fit_plus2_vif
 ```
 
 
