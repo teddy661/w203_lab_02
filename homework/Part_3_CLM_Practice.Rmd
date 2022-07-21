@@ -16,7 +16,7 @@ library(lmtest)
 library(dplyr)
 
 ```
-```{r}
+```{r load data}
 ?read.delim
 video <- read.delim('videos.txt', header=TRUE, sep='\t', dec = ".", na.strings = "NA")
 head(video)
@@ -59,19 +59,6 @@ grid.arrange(p1, p2,p3,p4, nrow = 2, ncol = 2)
 ```
 
 
-```{r linear regression}
-lm_video = lm(ln_views ~ rate + length, data = video)
-
-#check on Robust Standard Error
-ses = diag(vcovHC(lm_video))^0.5
-#stargazer doesn't correct for robust errors by default;set se=ses to override with the robust errors
-stargazer(lm_video, type = 'text', title = "Video Views Model",
-          se = list(ses), omit.stat = "f", star.cutoffs = c(0.05, 0.01, 0.001),
-          digits = 4, out="table1.txt")
-```
-
-
-
 ## Part 2 - CLM Practice
 
 For the following questions, your task is to evaluate the Classical Linear Model assumptions. It is not enough to say that an assumption is met or not met; instead, present evidence based on your background knowledge, visualizations, and numerical summaries.
@@ -90,13 +77,77 @@ The variables are as follows:
 - `length:` the duration of the video in seconds.
 
 
+```{r linear regression}
+lm_video <- lm(ln_views ~ rate + length, data = video)
+
+#check on Robust Standard Error
+ses = diag(vcovHC(lm_video))^0.5
+#stargazer doesn't correct for robust errors by default;set se=ses to override with the robust errors
+stargazer(lm_video, type = 'text', title = "Video Views Model",
+          se = list(ses), omit.stat = "f", star.cutoffs = c(0.05, 0.01, 0.001),
+          digits = 4, out="table1.txt")
+```
+
+
 1. Evaluate the **IID** assumption.
+The list of video contains video sampled from YouTube using a crawling algorithm in which it starts with a set of  videos from the list of "Recently Featured", "Most Viewed", "Top Rated" and "Most Discussed", for "Today", "This Week", "This Month" and "All Time" and then the algorithm uses this list to find more related videos. We can start with the argument that the initial set of videos are not independently sampled. For example, if the sample time frame is around election time, we would expect that "Recently Featured" videos are more likely to related to the topic of election. In addition, the crawl algorithm is adding videos into the list by finding videos that are directly related the initial set of videos. Therefore, by the nature of the sampling process, the list of videos is not IID but are related to each other.  
 
 2. Evaluate the **No perfect Colinearity** assumption.
+We have 2 methods to assess the **No perfect colinearity** assumption. First we can look at the scatter plot of these two variable to see if there is any obvious linear relationship. Second, we can compute the correlation between these two variable using Pearson's correlation method: 
+
+```{r}
+ggplot(data = video, aes(x = video$rate, y = video$length)) +
+  geom_point() +
+  geom_smooth(se = FALSE) +
+  labs(title = "Relationshiop between video's rate and length", x = "Video's Rate", y = "Video's Length")
+
+cor.test(video$rate, video$length, method = "pearson")
+```
+The scatter plot above shows that rate and length has no obvious relationship. In addition, the correlation test results shows that the estimate correlation between rate and length is 0.156 (CI: 0.1372389 0.1762458, p = 2.2e-16). Thus, we can say that there is obvious problem with the **No perfect Colinearity** assumption.
 
 3. Evaluate the **Linear Conditional Expectation:** assumption. 
 
+```{r}
+par(mfrow = c(2,2))
+plot(lm_video)
+```
+
+
+```{r}
+video <- video %>% mutate(
+  lm_video_predictions = predict(lm_video),
+  lm_video_residuals = resid(lm_video)
+)
+
+plot_rate_vs_residuals <- video %>% ggplot(aes(x = rate, y = lm_video_residuals))+
+  geom_point() + stat_smooth() + labs( title = "residuals with respect to rate")
+
+plot_length_vs_residuals <- video %>% ggplot(aes(x = length, y = lm_video_residuals))+
+  geom_point() + stat_smooth() + labs( title = "residuals with respect to length")
+
+plot_prediction_vs_residuals <- video %>% ggplot(aes(x = lm_video_predictions, y = lm_video_residuals))+
+  geom_point() + stat_smooth() + labs( title = "residuals with respect to prediction")
+
+
+
+```
+
+
 4. Evaluate the **Homoskedastic Errors:** assumption.
 
+```{r plotting prediction versus residuals}
+
+ggplot(aes(x = predict(lm_video), y = resid(lm_video)))+
+  geom_point() + stat_smooth() + labs( title = "residuals with respect to prediction")
+```
+
+
 5. Evaluate the **Normally Distributed Errors:** assumption.
+
+```{r q-q plot of residuals}
+qqnorm(resid(lm_video)); qqline(resid(lm_video))
+```
+
+
+From the Q-Q plot of residual above showed that standard errors are fairly normally distributed. Thus we can say that there is no problem with the **Normally Distributed Errors:** assumption. 
 
