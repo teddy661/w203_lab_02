@@ -23,17 +23,18 @@ theme_set(theme_bw())
 
 ## Research Question
 
-Principal Components Consulting Group has been contracted by a big three automotive company to identify key factors in developing a pricing model for new automobile introduction. Specifically, we are explaining the manufacturer suggested retail price (MSRP) in terms of engine displacement.    
+Principal Components Consulting Group has been contracted by a big three automotive company to identify key features in new automobile design that will influence the automile pricing strategy. Specifically, we are explaining the manufacturer suggested retail price (MSRP) in terms of engine power performance.    
 
-Engine displacement is a design parameter for automobiles given the available engine space, automobile size and desired performance characteristics of the automobile. With smaller more economical cars having smaller engines and larger more luxurious or sporty vehicles having larger engines.  
+Power performance of an engine is the maximum attainable power of an internal combustion engine. It can be used to compare different engines, different power, and angular velocities, and is determined by the type of engine designed by the automobile company. Engines with the same size can produce different power, torque, and revolution-per-minute (RPM), depending on how it is designed and tuned. 
+  
 
 ## Data Source
 
-Our data source is from Kaggle\footnote{https://www.kaggle.com/datasets/gagandeep16/car-sales}. We have chosen the outcome variable of price_in_thousands, which is the MSRP price for a new vehicle. We are currently evaluating several input variables to operationalize this test.  Based on our background research, preliminary exploratory data analysis and statistical testing, we have chosen engine displacement as the primary variable. We will augment this base case with additional categorical variables to refine the model.
+Our data source is from Kaggle\footnote{https://www.kaggle.com/datasets/gagandeep16/car-sales}, including 156 vehicle models from various car manufacturers. We have chosen price as the outcome variable (Y), which represents the MSRP price for a new vehicle and is measured using the price_in_thousands variable in our dataset. We have evaluated several key features (input variables) to operationalize this test.  Based on our background research, preliminary exploratory data analysis and statistical testing, we have chosen power performance as the measured variable (X). We will assess power performance as well as additional variables in our study.
  
 ## Unit of Observation
 
-Each row of the data set represents cross sectional data and is a single vehicle model available for purchase. There is one observation per vehicle. There are a couple aggregate columns in the data e.g. resale, however, we will not leverage them as part of this study.
+Each row of the data set represents cross sectional data and is a single vehicle model type available for purchase. There is one observation per vehicle model.  We will focus on price (MSRP) as our outcome variable.  There are a couple aggregate columns in the data e.g. resale, however, we will not leverage them in this study.
 
 
 
