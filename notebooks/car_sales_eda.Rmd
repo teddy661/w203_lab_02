@@ -74,12 +74,16 @@ car_sales <- car_sales %>%
     ln_fuel_efficiency = log(fuel_efficiency),
     ln_power_perf = log(power_perf),
     ln_price_resale_diff = log(price_resale_diff),
-    range = fuel_capacity * fuel_efficiency
+    range = fuel_capacity * fuel_efficiency,
+    volume = wheelbase * width,
+    ln_volume = log(volume)
     )
-#.6 R2, distribution looking good, then log, 
+#.6 R2, distribution looking good, then log,
+
 car_sales$manufacturer <- as.factor(car_sales$manufacturer)
 car_sales$model <- as.factor(car_sales$model)
 car_sales$vehicle_type <- as.factor(car_sales$vehicle_type)
+car_sales$my_category <- as.factor(car_sales$my_category)
 ```
 
 ```{r}
@@ -295,7 +299,7 @@ abline(0,0)
 
 ```
 ```{r}
-car_base_ed <- car_sales %>% lm(price_000 ~ engine_size, data = .)
+car_base_ed <- car_sales %>% lm(ln_price_000 ~ ln_power_perf, data = .)
 car_base_ed_se <- car_base_ed %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
 stargazer(car_base_ed, type="text",se = list(car_base_ed_se))
 coeftest(car_base_ed, vconv = vcovHC(type = "HC1"))
@@ -304,7 +308,16 @@ lmtest::bptest(car_base_ed)
 #ols_vif_tol(car_base_ed)
 ```
 ```{r}
-car_base_manu_ed <- car_sales %>% lm(price_000 ~ engine_size + horsepower, data = .)
+car_base_cat_ed <- car_sales %>% lm(ln_price_000 ~ ln_power_perf + my_category, data = .)
+car_base_cat_ed_se <- car_base_cat_ed %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+stargazer(car_base_cat_ed, type="text",se = list(car_base_cat_ed_se))
+coeftest(car_base_cat_ed, vconv = vcovHC(type = "HC1"))
+plot(car_base_cat_ed)
+lmtest::bptest(car_base_cat_ed)
+ols_vif_tol(car_base_cat_ed)
+```
+```{r}
+car_base_manu_ed <- car_sales %>% lm(ln_price_000 ~ ln_power_perf + my_category + ln_volume, data = .)
 car_base_manu_ed_se <- car_base_manu_ed %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
 stargazer(car_base_manu_ed, type="text",se = list(car_base_manu_ed_se))
 coeftest(car_base_manu_ed, vconv = vcovHC(type = "HC1"))
