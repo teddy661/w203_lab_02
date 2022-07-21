@@ -24,7 +24,7 @@ theme_set(theme_bw())
 
 ## Research Question
 
-Violent crime has been increasing in the Unitied States since reaching a low in 2014 \footnote{https://crime-data-explorer.app.cloud.gov/pages/explorer/crime/crime-trend}. The Principal Components Consulting Group has been contracted by the U.S. Department of Health and Human Services (HHS) as part of their "Healthy People 2030 Program" \footnote{https://health.gov/healthypeople/priority-areas/social-determinants-health/literature-summaries/crime-and-violence} to identify primary causes of violent crime and how intervention from (HHS) may influence those contributing factors. Specifically, we are examining incidence of violent crime per population and whether family stability affects (reduces) the incidence of violent crime.   
+Violent crime has been increasing in the Unitied States since reaching a low in 2014 \footnote{https://crime-data-explorer.app.cloud.gov/pages/explorer/crime/crime-trend}. The Principal Components Consulting Group has been contracted by the U.S. Department of Health and Human Services (HHS) as part of their "Healthy People 2030 Program" \footnote{https://health.gov/healthypeople/priority-areas/social-determinants-health/literature-summaries/crime-and-violence} to identify primary causes of violent crime which will inform future intervention from (HHS) in drafting proposal and policies to curtail the rising crime reports. Specifically, we are examining incidence of violent crime per population and whether family stability affects (reduces) the incidence of violent crime.   
 
 ## Data Source
 
