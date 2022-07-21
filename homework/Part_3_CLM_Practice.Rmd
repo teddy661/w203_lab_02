@@ -25,7 +25,7 @@ ncol(video)
 ```
 ```{r}
 video <- video %>% 
-  mutate(ln_views = log(views))
+  mutate(ln_views = log(views)) %>% drop_na(rate) %>% drop_na(length)
 ```
 
 ```{r warning=FALSE, out.height= 100%, out.width=100%}
@@ -78,6 +78,7 @@ The variables are as follows:
 
 
 ```{r linear regression}
+
 lm_video <- lm(ln_views ~ rate + length, data = video)
 
 #check on Robust Standard Error
@@ -90,7 +91,7 @@ stargazer(lm_video, type = 'text', title = "Video Views Model",
 
 
 1. Evaluate the **IID** assumption.
-The list of video contains video sampled from YouTube using a crawling algorithm in which it starts with a set of  videos from the list of "Recently Featured", "Most Viewed", "Top Rated" and "Most Discussed", for "Today", "This Week", "This Month" and "All Time" and then the algorithm uses this list to find more related videos. We can start with the argument that the initial set of videos are not independently sampled. For example, if the sample time frame is around election time, we would expect that "Recently Featured" videos are more likely to related to the topic of election. In addition, the crawl algorithm is adding videos into the list by finding videos that are directly related the initial set of videos. Therefore, by the nature of the sampling process, the list of videos is not IID but are related to each other.  
+The list of video contains videos sampled from YouTube using a crawling algorithm in which it starts with a set of  videos from the list of "Recently Featured", "Most Viewed", "Top Rated" and "Most Discussed", for "Today", "This Week", "This Month" and "All Time" and then the algorithm uses this list to find more related videos. We can argue that the initial set of videos are not independently sampled. For example, if the sample time frame is around election time, we would expect that "Recently Featured" videos are more likely to related to the topic of election. In addition, the crawl algorithm is adding videos into the list by finding videos that are directly related the initial set of videos. Therefore, by the nature of the sampling process, the list of videos is not IID but are related to each other.  
 
 2. Evaluate the **No perfect Colinearity** assumption.
 We have 2 methods to assess the **No perfect colinearity** assumption. First we can look at the scatter plot of these two variable to see if there is any obvious linear relationship. Second, we can compute the correlation between these two variable using Pearson's correlation method: 
@@ -103,7 +104,7 @@ ggplot(data = video, aes(x = video$rate, y = video$length)) +
 
 cor.test(video$rate, video$length, method = "pearson")
 ```
-The scatter plot above shows that rate and length has no obvious relationship. In addition, the correlation test results shows that the estimate correlation between rate and length is 0.156 (CI: 0.1372389 0.1762458, p = 2.2e-16). Thus, we can say that there is obvious problem with the **No perfect Colinearity** assumption.
+The scatter plot above shows that rate and length has no obvious relationship. In addition, the correlation test results shows that the estimate correlation between rate and length is 0.156 (CI: 0.1372389 0.1762458, p = 2.2e-16). Thus, we can say that there is no obvious problem with the **No perfect Colinearity** assumption.
 
 3. Evaluate the **Linear Conditional Expectation:** assumption. 
 
@@ -114,33 +115,37 @@ plot(lm_video)
 
 
 ```{r}
+
+
 video <- video %>% mutate(
   lm_video_predictions = predict(lm_video),
   lm_video_residuals = resid(lm_video)
 )
 
 plot_rate_vs_residuals <- video %>% ggplot(aes(x = rate, y = lm_video_residuals))+
-  geom_point() + stat_smooth() + labs( title = "residuals with respect to rate")
+  geom_point() + stat_smooth() + labs( title = "residuals vs rate")
 
 plot_length_vs_residuals <- video %>% ggplot(aes(x = length, y = lm_video_residuals))+
-  geom_point() + stat_smooth() + labs( title = "residuals with respect to length")
+  geom_point() + stat_smooth() + labs( title = "residuals vs length")
 
 plot_prediction_vs_residuals <- video %>% ggplot(aes(x = lm_video_predictions, y = lm_video_residuals))+
-  geom_point() + stat_smooth() + labs( title = "residuals with respect to prediction")
+  geom_point() + stat_smooth() + labs( title = "residuals vs prediction")
 
 
+plot_rate_vs_residuals|plot_length_vs_residuals|plot_prediction_vs_residuals
 
 ```
+Looking at the lot of residual versus rate above, we see that the line of residual average is somewhat oscillating around zero. However, the line of of residual versus length has a downward curvature as length increases. This means that there is non-linear relationship between the outcome variable (log(views)) and the regressor (length). This non-linear relationship is likey causing the line of residual versus predicted values to curve downward as the value of predictions grew large. Therefore, the linear condition expectation is not a safe assumption and thus linear model is likely not the best model to predict video’s views based on rate and length. 
 
 
 4. Evaluate the **Homoskedastic Errors:** assumption.
 
 ```{r plotting prediction versus residuals}
+plot(lm_video)
+lmtest::bptest(lm_video)
 
-ggplot(aes(x = predict(lm_video), y = resid(lm_video)))+
-  geom_point() + stat_smooth() + labs( title = "residuals with respect to prediction")
 ```
-
+From the residuals versus fitted values plot above, we see that as we are going from prediction with low values of 5 to high values of 8, the residual errors increase significantly. Additionally, we can use the Breusch-Pagan test where the null hypothesis is that homoscedasticity is present to evaluate our assumption. The test results in BP of 128.39 with p values of < 2.2e-16 which means that we can reject the null hypothesis. Therefore, we can conclude that heteroscedascity is present int he regression model. 
 
 5. Evaluate the **Normally Distributed Errors:** assumption.
 
