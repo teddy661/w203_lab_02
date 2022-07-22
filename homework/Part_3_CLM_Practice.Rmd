@@ -9,16 +9,32 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
+if(!require("Hmisc")){install.packages('Hmisc')}
+if(!require("funModeling")){install.packages('funModeling')}
+if(!require("olsrr")){install.packages('olsrr')}
+if(!require("ggpubr")){install.packages('ggpubr')}
+if(!require("readr")){install.packages('readr')}
+
+```
+
+
+```{r}
 library(tidyverse) 
 library(stargazer)
 library(sandwich)
 library(lmtest)
-library(dplyr)
+library(Hmisc)
+library(funModeling)
+library(olsrr)
+library(ggpubr)
+library(moments)
+
+theme_set(theme_bw())
 
 ```
 ```{r load data}
 ?read.delim
-video <- read.delim('videos.txt', header=TRUE, sep='\t', dec = ".", na.strings = "NA")
+video <- read.delim("../datasets/videos.txt", header=TRUE, sep='\t', dec = ".", na.strings = "NA")
 head(video)
 nrow(video)
 ncol(video)
@@ -32,30 +48,27 @@ video <- video %>%
 # To assemble multiple plots
 library(gridExtra)
 
-p1 <- ggplot(data = video, aes(x = video$rate)) +
-  geom_histogram(bins = 30) +
-  scale_x_continuous(breaks = seq(0,20,5))+
-  labs(title = "Histogram of Rate",x = "Rate",y = "Count")
+p1 <- ggplot(data = video, aes(x = video$rate)) + geom_histogram(bins = 30) + labs(title = "Histogram of Rate",x = "Rate",y = "Count")
+p2 <- ggplot(data = video, aes(x = video$length)) + geom_histogram(bins = 30) + labs(title = "Histogram of Length ", x = "Length", y = "Count")
+p3 <- ggplot(data = video, aes(x = video$views)) +  geom_histogram(bins = 30) +  labs(title = "Histogram of Views ", x = "Views", y = "Count")
+p4 <- ggplot(data = video, aes(x = video$ln_views)) + geom_histogram(bins = 30) +  labs(title = "Histogram of Log Views ", x = "Log Views", y = "Count")
+
+grid.arrange(p1, p2,p3, p4, nrow = 2, ncol = 2)
+```
 
 
-p2 <- ggplot(data = video, aes(x = video$length)) +
-  geom_histogram(bins = 30) +
-  scale_x_continuous(breaks = seq(0,30,2))+
-  labs(title = "Histogram of Views ", x = "Views", y = "Count")
-
-
-p3 <- ggplot(data = video, aes(x = video$rate, y = video$ln_views)) +
+```{r warning=FALSE}
+p5 <- ggplot(data = video, aes(x = video$rate, y = video$ln_views)) +
   geom_point() +
   geom_smooth(se = FALSE) +
   labs(title = "Association between log Views and Rate", x = "Rate", y = "Log Views")
 
-
-p4 <- ggplot(data = video, aes(x = video$length, y = video$ln_views)) +
+p6 <- ggplot(data = video, aes(x = video$length, y = video$ln_views)) +
   geom_point() +
   geom_smooth(se = FALSE) +
   labs(title = "Association between log Views and Length", x = "Rate", y = "Log Views")
 
-grid.arrange(p1, p2,p3,p4, nrow = 2, ncol = 2)
+grid.arrange(p5, p6, nrow = 1, ncol = 2)
 ```
 
 
@@ -87,6 +100,11 @@ ses = diag(vcovHC(lm_video))^0.5
 stargazer(lm_video, type = 'text', title = "Video Views Model",
           se = list(ses), omit.stat = "f", star.cutoffs = c(0.05, 0.01, 0.001),
           digits = 4, out="table1.txt")
+coeftest(lm_video, vconv = vcovHC(type = "HC1"))
+plot(lm_video)
+lmtest::bptest(lm_video)
+VIF_video <- ols_vif_tol(lm_video)
+VIF_video
 ```
 
 
