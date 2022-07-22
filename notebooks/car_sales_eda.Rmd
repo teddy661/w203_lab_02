@@ -136,6 +136,7 @@ ggarrange(A, B, C, D, E, F, G, H + rremove("x.text"),
 ```
 # Log transformation improves the distribution to be more normal for: Price, Sales, Resale and Engine Size
 
+
 ```{r}
 ggarrange(I, J, K, L, M, N, O, P + rremove("x.text"), 
           labels = c("I", "J", "K", "L", "M", "N", "O", "P"),
@@ -325,3 +326,27 @@ plot(car_base_manu_ed)
 lmtest::bptest(car_base_manu_ed)
 ols_vif_tol(car_base_manu_ed)
 ```
+
+```{r}
+#Base model version is Luxury in the "my_category"
+car_sales[,"my_category"] <- relevel(factor(car_sales$my_category), ref = "L")
+car_base_brand <- car_sales %>% lm(ln_price_000 ~ ln_power_perf + my_category, data = .)
+car_base_brand_se <- car_base_brand %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+stargazer(car_base_brand, type="text",se = list(car_base_brand_se))
+coeftest(car_base_brand, vconv = vcovHC(type = "HC1"))
+plot(car_base_brand)
+lmtest::bptest(car_base_brand)
+VIF_brand <- ols_vif_tol(car_base_brand)
+VIF_brand
+```
+```{r}
+# category_hist <- hist(car_sales$my_category)
+power_price_catogory <- ggplot(car_sales, aes(x=ln_power_perf, y=ln_price_000, color = my_category)) +  geom_point()+ geom_smooth(method=lm)
+power_price <- ggplot(car_sales, aes(x=ln_power_perf, y=ln_price_000)) +  geom_point()+ geom_smooth(method=lm)
+power_price_catogory | power_price
+```
+```{r, warning=FALSE}
+power_price_manu <- ggplot(car_sales, aes(x=ln_power_perf, y=ln_price_000, color = manufacturer)) +  geom_point()+ geom_smooth(method=lm)
+power_price_manu
+```
+
