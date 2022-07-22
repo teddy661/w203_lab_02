@@ -26,6 +26,7 @@ library(Hmisc)
 library(funModeling)
 library(olsrr)
 library(ggpubr)
+library(moments)
 
 theme_set(theme_bw())
 ```
@@ -341,12 +342,94 @@ VIF_brand
 ```
 ```{r}
 # category_hist <- hist(car_sales$my_category)
-power_price_catogory <- ggplot(car_sales, aes(x=ln_power_perf, y=ln_price_000, color = my_category)) +  geom_point()+ geom_smooth(method=lm)
-power_price <- ggplot(car_sales, aes(x=ln_power_perf, y=ln_price_000)) +  geom_point()+ geom_smooth(method=lm)
+power_price_catogory <- ggplot(car_sales_final, aes(x=ln_power_perf, y=ln_price_000, color = my_category)) +  geom_point()+ geom_smooth(method=lm)
+power_price <- ggplot(car_sales_final, aes(x=ln_power_perf, y=ln_price_000)) +  geom_point()+ geom_smooth(method=lm)
+power_sqrt_price <- ggplot(car_sales_final, aes(x=power_perf_sqrt, y=ln_price_000)) +  geom_point()+ geom_smooth(method=lm)
+power_sqrt_price_catogory <- ggplot(car_sales_final, aes(x=power_perf_sqrt, y=ln_price_000, color = my_category)) +  geom_point()+ geom_smooth(method=lm)
 power_price_catogory | power_price
+power_sqrt_price_catogory | power_sqrt_price
 ```
 ```{r, warning=FALSE}
-power_price_manu <- ggplot(car_sales, aes(x=ln_power_perf, y=ln_price_000, color = manufacturer)) +  geom_point()+ geom_smooth(method=lm)
+power_price_manu <- ggplot(car_sales_final, aes(x=ln_power_perf_sq, y=ln_price_000, color = manufacturer)) +  geom_point()+ geom_smooth(method=lm)
 power_price_manu
+```
+```{r}
+car_sales_final <- car_sales[!is.na(car_sales$ln_power_perf),]
+car_sales_final <- car_sales_final %>%  
+  mutate(car_base_cat_residuals = resid(car_base_cat),
+         car_base_cat_fitted = fitted(car_base_cat),
+         ln_power_perf_sq = ln_power_perf ^ 2,
+         ln_power_perf_sqrt = ln_power_perf ^ 0.5,
+         power_perf_sqrt = power_perf ^ 0.5)
+#Base model version is Luxury in the "my_category"
+car_sales_final[,"my_category"] <- relevel(factor(car_sales_final$my_category), ref = "L")
+car_base_cat <- car_sales_final %>% lm(ln_price_000 ~  ln_power_perf + my_category, data = .)
+car_base_cat_se <- car_base_cat %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+stargazer(car_base_cat, type="text",se = list(car_base_cat_se))
+coeftest(car_base_cat, vconv = vcovHC(type = "HC1"))
+plot(car_base_cat)
+lmtest::bptest(car_base_cat)
+VIF_cat <- ols_vif_tol(car_base_cat)
+VIF_cat
+```
+
+```{r}
+U <- ggplot(car_sales_final, aes(x=power_perf)) +  geom_histogram(bins=60)
+V <- ggplot(car_sales_final, aes(x=ln_power_perf)) + geom_histogram(bins=60)
+V2 <- ggplot(car_sales_final, aes(x=ln_power_perf_sq)) + geom_histogram(bins=60)
+V3 <- ggplot(car_sales_final, aes(x=power_perf_sqrt)) + geom_histogram(bins=60)
+ggarrange(U, V, V2, V3 + rremove("x.text"), 
+          # labels = c( "B", "C", "D", "E", "F", "G", "H"),
+          ncol = 2, nrow = 2)
+skewness_power_perf <- skewness(car_sales_final$power_perf)
+skewness_ln_power_perf <- skewness(car_sales_final$ln_power_perf)
+skewness_ln_power_perf_sq <- skewness(car_sales_final$ln_power_perf_sq)
+skewness_power_perf
+skewness_ln_power_perf
+skewness_ln_power_perf_sq
+```
+
+
+```{r}
+
+plot_1 <- car_sales_final %>%
+  ggplot(aes(x = ln_power_perf, y = car_base_cat_residuals)) +
+  geom_point() + geom_smooth(method = 'lm')
+
+plot_2 <- car_sales_final %>%
+  ggplot(aes(x = car_base_cat_fitted, y = car_base_cat_residuals)) +
+  geom_point() + stat_smooth(se = TRUE)
+
+plot_1 | plot_2
+
+```
+
+
+```{r}
+car_base_power <- car_sales_final %>% lm(ln_price_000 ~ ln_power_perf_sq, data = .)
+car_base_power_se <- car_base_cat %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+stargazer(car_base_power, type="text",se = list(car_base_power_se))
+coeftest(car_base_power, vconv = vcovHC(type = "HC1"))
+plot(car_base_power)
+lmtest::bptest(car_base_power)
+# VIF_power <- ols_vif_tol(car_base_power)
+# VIF_power
+```
+
+```{r}
+car_sales_final <- car_sales_final %>%  
+  mutate(car_base_power_residuals = resid(car_base_power),
+         car_base_power_fitted = fitted(car_base_power))
+                                
+plot_3 <- car_sales_final %>%
+  ggplot(aes(x = ln_power_perf_sqrt, y = car_base_power_residuals)) +
+  geom_point() + geom_smooth(method = 'lm')
+
+plot_4 <- car_sales_final %>%
+  ggplot(aes(x = car_base_power_fitted, y = car_base_power_residuals)) +
+  geom_point() + stat_smooth(se = TRUE)
+
+plot_3 | plot_4
+
 ```
 
