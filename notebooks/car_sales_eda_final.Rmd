@@ -1,0 +1,244 @@
+---
+title: "Car Sales EDA FInal Edition"
+author: "Ed Brown, Daphne Lin, Linh Tran, Lisa Wu"
+date: "`r Sys.Date()`"
+output: pdf_document
+header-includes:
+ \usepackage{wrapfig}
+ \usepackage{float}
+ \floatplacement{figure}{H}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r check packages and install, include=FALSE}
+if (!require("Hmisc")) {
+  install.packages("Hmisc")
+}
+if (!require("funModeling")) {
+  install.packages("funModeling")
+}
+if (!require("olsrr")) {
+  install.packages("olsrr")
+}
+if (!require("ggpubr")) {
+  install.packages("ggpubr")
+}
+```
+
+```{r load packages and set options, include=FALSE}
+
+library(tidyverse)
+library(stargazer)
+library(sandwich)
+library(lmtest)
+library(Hmisc)
+library(funModeling)
+library(olsrr)
+library(ggpubr)
+library(moments)
+
+theme_set(theme_bw())
+```
+
+```{r read input file, include=FALSE}
+car_sales <- read_csv("../datasets/Car_sales.csv",
+  col_types = cols(
+    Price_in_thousands = col_number(),
+    cylinders = col_number(), displacement = col_number(),
+    horsepower = col_number(), weight = col_number(),
+    acceleration = col_number()
+  )
+)
+```
+
+```{r relabel column headers, include=FALSE}
+colnames(car_sales)[1] <- "manufacturer"
+colnames(car_sales)[2] <- "model"
+colnames(car_sales)[3] <- "sales_000"
+colnames(car_sales)[4] <- "resale_value"
+colnames(car_sales)[5] <- "vehicle_type"
+colnames(car_sales)[6] <- "price_000"
+colnames(car_sales)[7] <- "engine_size"
+colnames(car_sales)[8] <- "horsepower"
+colnames(car_sales)[9] <- "wheelbase"
+colnames(car_sales)[10] <- "width"
+colnames(car_sales)[11] <- "length"
+colnames(car_sales)[12] <- "curb_weight"
+colnames(car_sales)[13] <- "fuel_capacity"
+colnames(car_sales)[14] <- "fuel_efficiency"
+colnames(car_sales)[15] <- "latest_launch"
+colnames(car_sales)[16] <- "power_perf"
+colnames(car_sales)[17] <- "vehicle_tier"
+```
+
+```{r remove missing data points}
+# Remove one row "Town & Country" has no values
+car_sales <- car_sales[!(car_sales$model == "Town & Country"), ]
+
+# Remove all rows with missing power_performance information (1 row)
+car_sales <- car_sales[!is.na(car_sales$power_perf), ]
+```
+
+```{r convert columns to appropriate types}
+# Convert to Factors
+car_sales$manufacturer <- as.factor(car_sales$manufacturer)
+car_sales$model <- as.factor(car_sales$model)
+car_sales$vehicle_type <- as.factor(car_sales$vehicle_type)
+# Vehicle Tier L = Luxury; S = Standard; E = Economy
+# Convert to Factor and Re-Level to Luxury as Base Model
+car_sales[, "vehicle_tier"] <- relevel(as.factor(car_sales$vehicle_tier), 
+                                       ref = "L")
+# Convert Dates
+car_sales$latest_launch <- as.POSIXct(car_sales$latest_launch, 
+                                      format = "%m/%d/%Y")
+```
+```{r mutate incoming data and add our required study parameters}
+car_sales <- car_sales %>%
+  mutate(
+    ln_price_000 = log(price_000),
+    ln_width = log(width),
+    ln_curb_weight = log(curb_weight),
+    ln_fuel_capacity = log(fuel_capacity),
+    ln_fuel_efficiency = log(fuel_efficiency),
+    ln_power_perf = log(power_perf),
+    vehicle_range = fuel_capacity * fuel_efficiency,
+    ln_range = log(vehicle_range),
+    vehicle_size = length * width,
+    ln_vehicle_size = log(vehicle_size),
+    density = curb_weight / ln_vehicle_size,
+    ln_density = log(density),
+    days_since_refresh = as.numeric(difftime(as.POSIXct(Sys.Date(), tz = "UTC"), 
+                                             latest_launch, units = "days"))
+  )
+car_sales$refresh_normalized <- 
+  car_sales$days_since_refresh / max(car_sales$days_since_refresh)
+```
+
+```{r histograms of key variables, include=FALSE}
+hist_price <- ggplot(car_sales, aes(x = price_000)) +
+  geom_histogram(bins = 60)
+hist_ln_price <- ggplot(car_sales, aes(x = ln_price_000)) +
+  geom_histogram(bins = 60)
+
+hist_power_perf <- ggplot(car_sales, aes(x = power_perf)) +
+  geom_histogram(bins = 60)
+hist_ln_power_perf <- ggplot(car_sales, aes(x = ln_power_perf)) +
+  geom_histogram(bins = 60)
+
+hist_vehicle_size <- ggplot(car_sales, aes(x = vehicle_size)) +
+  geom_histogram(bins = 60)
+hist_ln_vehicle_size <- ggplot(car_sales, aes(x = ln_vehicle_size)) +
+  geom_histogram(bins = 60)
+```
+\newpage
+```{r display histograms, echo=FALSE, message=FALSE, warning=FALSE}
+complete_histograms <- ggarrange(
+  hist_price, hist_ln_price,
+  hist_power_perf, hist_ln_power_perf,
+  hist_vehicle_size, hist_ln_vehicle_size
+)
+complete_histograms
+```
+
+```{r box plots for vehicle class, echo=FALSE}
+vehicle_tier_boxplot <- ggplot(car_sales, aes(x = vehicle_tier, y = price_000)) +
+  geom_boxplot(
+    outlier.colour = "red", outlier.shape = 8,
+    outlier.size = 4,
+    notch = FALSE,
+  )
+vehicle_tier_boxplot + stat_summary(fun = mean, geom = "point", shape = 23, size = 4)
+```
+
+```{r xy plots for independent dependent variable combinations, message=FALSE, warning=FALSE, include=FALSE}
+ln_price_vs_ln_power_perf <- ggplot(car_sales, aes(x = ln_power_perf, y = ln_price_000)) +
+  geom_point() +
+  geom_smooth(method = lm, formula = y ~ x)
+ln_price_vs_ln_vehicle_size <- ggplot(car_sales, aes(x = ln_vehicle_size, y = ln_price_000)) +
+  geom_point() +
+  geom_smooth(method = lm, formula = y ~ x)
+ln_price_vs_vehicle_size <- ggplot(car_sales, aes(x = vehicle_size, y = ln_price_000)) +
+  geom_point() +
+  geom_smooth(method = lm, formula = y ~ x)
+```
+
+```{r display xy plots, echo=FALSE}
+complete_xy_plots <- ggarrange(
+  ln_price_vs_ln_power_perf, ln_price_vs_ln_vehicle_size, ln_price_vs_vehicle_size
+)
+complete_xy_plots
+```
+
+```{r proposed first model, include=FALSE}
+## Proposed First Model
+layout(matrix(c(1, 2, 3, 4), nrow = 2, ncol = 2, byrow = TRUE))
+plot(1, main = 1)
+plot(2, main = 2)
+plot(3, main = 3)
+plot(4, main = 4)
+car_price_base <- car_sales %>% lm(ln_price_000 ~ ln_power_perf, data = .)
+car_price_base_se <- car_price_base %>%
+  vcovHC(type = "HC1") %>%
+  diag() %>%
+  sqrt()
+stargazer(car_price_base, type = "text", se = list(car_price_base_se))
+coeftest(car_price_base, vconv = vcovHC(type = "HC1"))
+plot(car_price_base)
+lmtest::bptest(car_price_base)
+# ols_vif_tol(car_price_base)
+```
+
+```{r proposed second model, include=FALSE}
+## Proposed Second Model
+layout(matrix(c(1, 2, 3, 4), nrow = 2, ncol = 2, byrow = TRUE))
+plot(1, main = 1)
+plot(2, main = 2)
+plot(3, main = 3)
+plot(4, main = 4)
+car_base_size <- car_sales %>% lm(ln_price_000 ~ ln_power_perf + ln_vehicle_size, data = .)
+car_base_size_se <- car_base_size %>%
+  vcovHC(type = "HC1") %>%
+  diag() %>%
+  sqrt()
+stargazer(car_base_size, type = "text", se = list(car_base_size))
+coeftest(car_base_size, vconv = vcovHC(type = "HC1"))
+plot(car_base_size)
+lmtest::bptest(car_base_size)
+ols_vif_tol(car_base_size)
+```
+```{r proposed third model, include=FALSE}
+## Proposed Third Model (Ed)
+layout(matrix(c(1, 2, 3, 4), nrow = 2, ncol = 2, byrow = TRUE))
+plot(1, main = 1)
+plot(2, main = 2)
+plot(3, main = 3)
+plot(4, main = 4)
+car_size_tier <- car_sales %>% lm(ln_price_000 ~ ln_power_perf + vehicle_tier + ln_vehicle_size, data = .)
+car_size_tier_se <- car_size_tier %>%
+  vcovHC(type = "HC1") %>%
+  diag() %>%
+  sqrt()
+stargazer(car_size_tier, type = "text", se = list(car_size_tier_se))
+coeftest(car_size_tier, vconv = vcovHC(type = "HC1"))
+plot(car_size_tier)
+lmtest::bptest(car_size_tier)
+ols_vif_tol(car_size_tier)
+```
+
+```{r final regression table, message=FALSE, echo=FALSE, results='asis'}
+stargazer(car_price_base, car_base_size, car_size_tier,
+  type = "latex",
+  se = list(car_price_base_se, car_base_size_se, car_size_tier_se),
+  header = FALSE,
+  title = "Estimated Regressions",
+  dep.var.caption = "Output Variable: natural log of price in thousands of dollars",
+  dep.var.labels = "",
+  star.cutoffs = c(0.05, 0.01, 0.001),
+  covariate.labels = c("Natural Log Power Performance Ratio", "Economy Tier Vehicles", "Mid Tier Vehicles", "Vehicle Size", "constant"),
+  notes = "\\parbox[t]{.55\\textwidth}{$HC_1$ robust standard errors in parentheses. Luxury Vehicles are the base Tier}", notes.align = "l"
+)
+```
