@@ -147,7 +147,7 @@ stargazer(fit_vif, type = 'latex', title = "Tolerance and VIF Table",digits = 4,
     
 - Looking at the graph of residual versus rate (the left graph below), we see that the line of residual average is oscillating around zero but is not flat. The line of of residual versus length (the middle graph below) has a downward curvature (deviate from zero) as length increases. This means that there is non-linear relationship between the outcome variable (log(views)) and the input variables. This non-linear relationship is likely causing the line of residual versus predicted values (the right graph) to curve downward as the predicted views increase. 
     
-- Therefore, the **Linear Conditional Expectation** is not met. This model version assumes that data is linear (the model is still the best linear predictor), but the estimated coefficient does not match the relationship of the data. In order to meet this assumption, we can consider other families of nonlinear models as the linear model does not fully model the complexity of the data.  
+- Therefore, the **Linear Conditional Expectation** is not met. This model version assumes that data is linear (the model is still the best linear predictor), but the estimated coefficient does not match the relationship of the data. In order to meet this assumption, we may need to consider other families of nonlinear models as the linear model does not fully model the complexity of the data.  
 
 ```{r echo=FALSE, fig.show="hold", out.width="50%",}
 video <- video %>% mutate(
@@ -183,7 +183,7 @@ plot_prediction_vs_residuals
 
 ```
     
-- Additionally, we performed the Breusch-Pagan (BP) test where the null hypothesis is that homoscedasticity is present. With BP value of 128.39 and p values less than 2.2e-16 means, we reject the null hypothesis and conclude that there is strong evidence that heteroskedasticity exists in the regression model. Given the heteroskedasticity problem, we should use the robust standard error in our model.
+- Additionally, we performed the Breusch-Pagan (BP) test where the null hypothesis is that homoscedasticity is present. With BP value of 128.39 and p values less than 2.2e-16 means, we reject the null hypothesis and conclude that there is strong evidence that heteroskedasticity exists in the regression model. Given the heteroskedasticity problem, we should use the robust standard error to solve in our model. While the problem of heteroskedasticity is evident here, one of the key causes could be this model is not correctly specified (as noted in our response to the first three assumptions) which requires more care and corrections. 
 
 ```{r Breusch-Pagan test, echo=FALSE, include=TRUE}
 lmtest::bptest(lm_video)
@@ -191,8 +191,7 @@ lmtest::bptest(lm_video)
 ```
 5.  Evaluate the **Normally Distributed Errors:** assumption.
 
-- From the histogram and Q-Q plots of residual below, we observe that the errors are close to normal distribution, with slight thin tails (platykurtic). We also measured skewness and kurtosis of the errors, with skewness of 0.05738289 (within +-0.5 of zero, with zero being normal distribution) and kurtosis of 2.784654 (within +-0.5 of 3, with 3 being normal distribution), which confirms our observation from the graphs. Thus there is no strong evidence that this model violates the **Normally Distributed Errors** assumption. 
-
+- From the histogram and Q-Q plots of residual below, we observe that the errors are close to normal distribution, with slight thin tails (platykurtic). We also measured skewness and kurtosis of the errors, with skewness of 0.05738289 (within +-0.5 of zero, with zero being normal distribution) and kurtosis of 2.784654 (within +-0.5 of 3, with 3 being normal distribution), which further confirms our observation from the graphs. We conclude that there is no strong evidence that this model violates the **Normally Distributed Errors** assumption. 
 
 ```{r echo=TRUE, include=FALSE}
 skew_score <- skewness(video$lm_video_residuals)
