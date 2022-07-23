@@ -60,6 +60,7 @@ colnames(car_sales)[16] <- "power_perf"
 
 head(car_sales,5)
 car_sales <- car_sales[!(car_sales$model == "Town & Country"),]
+car_sales <-car_sales[!is.na(car_sales$power_perf),]
 car_sales <- car_sales %>%
   mutate(
     price_resale_diff = price_000-resale_value,
@@ -76,15 +77,18 @@ car_sales <- car_sales %>%
     ln_power_perf = log(power_perf),
     ln_price_resale_diff = log(price_resale_diff),
     range = fuel_capacity * fuel_efficiency,
-    volume = wheelbase * width,
-    ln_volume = log(volume)
+    volume = length * width,
+    ln_volume = log(volume),
+    density = curb_weight / volume,
+    ln_density = log(density)
     )
 #.6 R2, distribution looking good, then log,
 
 car_sales$manufacturer <- as.factor(car_sales$manufacturer)
 car_sales$model <- as.factor(car_sales$model)
 car_sales$vehicle_type <- as.factor(car_sales$vehicle_type)
-car_sales$my_category <- as.factor(car_sales$my_category)
+#Base model version is Luxury in the "my_category"
+car_sales[,"my_category"] <- relevel(as.factor(car_sales$my_category), ref = "L")
 ```
 
 ```{r}
@@ -301,6 +305,7 @@ abline(0,0)
 
 ```
 ```{r}
+#Proposed Base Model ED
 car_base_ed <- car_sales %>% lm(ln_price_000 ~ ln_power_perf, data = .)
 car_base_ed_se <- car_base_ed %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
 stargazer(car_base_ed, type="text",se = list(car_base_ed_se))
@@ -310,7 +315,8 @@ lmtest::bptest(car_base_ed)
 #ols_vif_tol(car_base_ed)
 ```
 ```{r}
-car_base_cat_ed <- car_sales %>% lm(ln_price_000 ~ ln_power_perf + my_category, data = .)
+##Proposed Second Model ED
+car_base_cat_ed <- car_sales %>% lm(ln_price_000 ~ ln_power_perf + ln_volume, data = .)
 car_base_cat_ed_se <- car_base_cat_ed %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
 stargazer(car_base_cat_ed, type="text",se = list(car_base_cat_ed_se))
 coeftest(car_base_cat_ed, vconv = vcovHC(type = "HC1"))
@@ -318,8 +324,18 @@ plot(car_base_cat_ed)
 lmtest::bptest(car_base_cat_ed)
 ols_vif_tol(car_base_cat_ed)
 ```
-```{r}
+```{r model}
+## Proposed Third Model (Ed)
 car_base_manu_ed <- car_sales %>% lm(ln_price_000 ~ ln_power_perf + my_category + ln_volume, data = .)
+car_base_manu_ed_se <- car_base_manu_ed %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
+stargazer(car_base_manu_ed, type="text",se = list(car_base_manu_ed_se))
+coeftest(car_base_manu_ed, vconv = vcovHC(type = "HC1"))
+plot(car_base_manu_ed)
+lmtest::bptest(car_base_manu_ed)
+ols_vif_tol(car_base_manu_ed)
+```
+```{r}
+car_base_manu_ed <- car_sales %>% lm(ln_price_000 ~ ln_power_perf + my_category + ln_density, data = .)
 car_base_manu_ed_se <- car_base_manu_ed %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
 stargazer(car_base_manu_ed, type="text",se = list(car_base_manu_ed_se))
 coeftest(car_base_manu_ed, vconv = vcovHC(type = "HC1"))
@@ -329,8 +345,6 @@ ols_vif_tol(car_base_manu_ed)
 ```
 
 ```{r}
-#Base model version is Luxury in the "my_category"
-car_sales[,"my_category"] <- relevel(factor(car_sales$my_category), ref = "L")
 car_base_brand <- car_sales %>% lm(ln_price_000 ~ ln_power_perf + my_category, data = .)
 car_base_brand_se <- car_base_brand %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
 stargazer(car_base_brand, type="text",se = list(car_base_brand_se))
@@ -342,10 +356,10 @@ VIF_brand
 ```
 ```{r}
 # category_hist <- hist(car_sales$my_category)
-power_price_catogory <- ggplot(car_sales_final, aes(x=ln_power_perf, y=ln_price_000, color = my_category)) +  geom_point()+ geom_smooth(method=lm)
-power_price <- ggplot(car_sales_final, aes(x=ln_power_perf, y=ln_price_000)) +  geom_point()+ geom_smooth(method=lm)
-power_sqrt_price <- ggplot(car_sales_final, aes(x=power_perf_sqrt, y=ln_price_000)) +  geom_point()+ geom_smooth(method=lm)
-power_sqrt_price_catogory <- ggplot(car_sales_final, aes(x=power_perf_sqrt, y=ln_price_000, color = my_category)) +  geom_point()+ geom_smooth(method=lm)
+power_price_catogory <- ggplot(car_sales, aes(x=ln_power_perf, y=ln_price_000, color = my_category)) +  geom_point()+ geom_smooth(method=lm)
+power_price <- ggplot(car_sales, aes(x=ln_power_perf, y=ln_price_000)) +  geom_point()+ geom_smooth(method=lm)
+power_sqrt_price <- ggplot(car_sales, aes(x=power_perf_sqrt, y=ln_price_000)) +  geom_point()+ geom_smooth(method=lm)
+power_sqrt_price_catogory <- ggplot(car_sales, aes(x=power_perf_sqrt, y=ln_price_000, color = my_category)) +  geom_point()+ geom_smooth(method=lm)
 power_price_catogory | power_price
 power_sqrt_price_catogory | power_sqrt_price
 ```
@@ -354,15 +368,14 @@ power_price_manu <- ggplot(car_sales_final, aes(x=ln_power_perf_sq, y=ln_price_0
 power_price_manu
 ```
 ```{r}
-car_sales_final <- car_sales[!is.na(car_sales$ln_power_perf),]
-car_sales_final <- car_sales_final %>%  
+car_sales_final <- car_sales %>%  
   mutate(car_base_cat_residuals = resid(car_base_cat),
          car_base_cat_fitted = fitted(car_base_cat),
          ln_power_perf_sq = ln_power_perf ^ 2,
          ln_power_perf_sqrt = ln_power_perf ^ 0.5,
          power_perf_sqrt = power_perf ^ 0.5)
-#Base model version is Luxury in the "my_category"
-car_sales_final[,"my_category"] <- relevel(factor(car_sales_final$my_category), ref = "L")
+
+
 car_base_cat <- car_sales_final %>% lm(ln_price_000 ~  ln_power_perf + my_category, data = .)
 car_base_cat_se <- car_base_cat %>% vcovHC(type = "HC1") %>% diag() %>% sqrt()
 stargazer(car_base_cat, type="text",se = list(car_base_cat_se))
