@@ -1,0 +1,221 @@
+---
+title: "HW12: CLM Practice"
+author: 'The Principal Components - Ed Brown, Daphne Lin, Linh Tran, Lisa Wu '
+output: pdf_document
+---
+
+```{r setup, include=FALSE, echo=FALSE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+```{r check packages and install, include=FALSE}
+if(!require("Hmisc")){install.packages('Hmisc')}
+if(!require("funModeling")){install.packages('funModeling')}
+if(!require("olsrr")){install.packages('olsrr')}
+if(!require("ggpubr")){install.packages('ggpubr')}
+if(!require("readtext")){install.packages("readtext")}
+```
+
+```{r include=FALSE}
+library(tidyverse) 
+library(stargazer)
+library(sandwich)
+library(lmtest)
+library(Hmisc)
+library(funModeling)
+library(olsrr)
+library(ggpubr)
+library(moments)   #skewness, kurtosis test
+library(gridExtra)  #show multiple charts
+theme_set(theme_bw())
+```
+
+```{r load data, include=FALSE}
+?read.delim
+video <- read.delim('../datasets/videos.txt', header=TRUE, sep='\t', dec = ".", na.strings = "NA")
+head(video)
+nrow(video)
+ncol(video)
+```
+
+```{r include=FALSE}
+video <- video %>% 
+  mutate(ln_views = log(views)) %>% drop_na(rate,length)
+
+```
+
+```{r warning=FALSE, include=FALSE}
+p1 <- ggplot(data = video, aes(x = video$rate)) +  geom_histogram(bins = 30) + labs(title = "Histogram of Rate",x = "Rate",y = "Count")
+p2 <- ggplot(data = video, aes(x = video$length)) +  geom_histogram(bins = 30) + labs(title = "Histogram of Length ", x = "Length", y = "Count")
+p3 <- ggplot(data = video, aes(x = video$views)) +  geom_histogram(bins = 30) + labs(title = "Histogram of Views", x = "Views", y = "Count")
+p4 <- ggplot(data = video, aes(x = video$ln_views)) +  geom_histogram(bins = 30) + labs(title = "Histogram of Log Views", x = "Log Views", y = "Count")
+p5 <- ggplot(data = video, aes(x = video$rate, y = video$ln_views)) + geom_point() +  geom_smooth(se = FALSE) +
+  labs(title = "Scatterplot of log Views and Rate", x = "Rate", y = "Log Views")
+p6 <- ggplot(data = video, aes(x = video$length, y = video$ln_views)) + geom_point() +geom_smooth(se = FALSE) +
+  labs(title = "Scatterplot of log Views and Length", x = "Rate", y = "Log Views")
+
+```
+
+```{r include=FALSE}
+grid.arrange(p1,p2,p3,p4, nrow = 2, ncol = 2)
+```
+
+```{r warning=FALSE, include=FALSE}
+grid.arrange(p5, p6, nrow = 1, ncol = 2)
+```
+
+## Part 2 - CLM Practice
+
+For the following questions, your task is to evaluate the Classical Linear Model assumptions. It is not enough to say that an assumption is met or not met; instead, present evidence based on your background knowledge, visualizations, and numerical summaries.
+
+The file `videos.txt` contains 9618 observations of videos shared on YouTube. It was created by Cheng, Dale and Liu at Simon Fraser University. Please see [this link](http://netsg.cs.sfu.ca/youtubedata/) for details about how the data was collected.
+
+You wish to run the following regression:
+
+$$
+ln(\text{views}) = \beta_0 + \beta_1 \text{rate}  + \beta_3 \text{length}
+$$ The variables are as follows:
+
+-   `views`: the number of views by YouTube users.
+-   `rate`: This is the average of the ratings that the video received. You may think of this as a proxy for video quality. (Notice that this is different from the variable `ratings` which is a count of the total number of ratings that a video has received.)
+-   `length:` the duration of the video in seconds.
+
+```{r linear regression, include=FALSE}
+lm_video <- lm(ln_views ~ rate + length, data = video)
+
+#check on Robust Standard Error
+ses = diag(vcovHC(lm_video))^0.5
+#stargazer doesn't correct for robust errors by default;set se=ses to override with the robust errors
+stargazer(lm_video, type = 'text', title = "Video Views Model",
+          se = list(ses), 
+          # omit.stat = "f", 
+          star.cutoffs = c(0.05, 0.01, 0.001),
+          digits = 4, out="table1.txt")
+coeftest(lm_video, vconv = vcovHC(type = "HC1"))
+plot(lm_video)
+lmtest::bptest(lm_video)
+fit_vif = ols_vif_tol(lm_video)
+fit_vif
+cor_rate_length <- cor(video$rate, video$length, method=c("pearson"))
+print(paste("Correlation between rate and length is: ", cor_rate_length))
+```
+
+
+
+Response: 
+
+1.  Evaluate the **IID** assumption
+
+- Assessing the IID assumption requires an analysis of the sample selection design process. Based on our understanding of the selection process, the list of videos was selected from YouTube using a crawling algorithm which starts with a set of videos from the list of "Recently Featured", "Most Viewed", "Top Rated" and "Most Discussed", for "Today", "This Week", "This Month" and "All Time" and then uses this list to find more related videos. Given this process, we believe that the videos in this dataset are not independently sampled. For example, if the sample time frame is around election time, we would expect that the initial list of "Recently Featured" or "Most Discussed" videos are more likely to be related to the topic of election for "Today" or "This Week". In addition, the crawl algorithm adds videos to the list by finding other videos that are directly related to the initial set of videos. Therefore, by the nature of the sampling process, this dataset does not meet the IID assumption. 
+
+- To address this violation of the IID assumption of the classical linear model, the researchers need to get new data by using a new random sampling process. If the researcher wants to use the same data, perhaps a different model type of model other than the classical linear model would be more suitable to the current dataset.
+
+2.  Evaluate the **No perfect Colinearity** assumption. 
+
+    In order to assess nearly perfect colinearity, we use our background knowledge to evaluate the input variables (rate and length), examine the coefficients of the model, review the scatter plot of the two variables, and perform correction test and VIF test. 
+    - Based on our background knowledge, the length of a video may affect a viewer's rating of the video, but we don't expect near perfect correlation between rate and length, as the content of the video also plays a key role in viewer's rating.
+    
+```{r}
+lm_video$coefficients
+```
+    - We see that R has not dropped rate or length variable in the model which means that there is no perfect colinearity. 
+
+    - We examined the scatter plot of rate vs length below which shows that rate and length has no obvious relationship.
+    
+```{r warning=FALSE,echo=FALSE,include=TRUE, out.width="50%",}
+ggplot(data = video, aes(x = rate, y = length)) +
+  # geom_point() +  geom_smooth(method=lm) + 
+  geom_point() + geom_smooth(method = "gam", formula = y ~ s(x, bs = "cs", fx = TRUE, k = 20)) + 
+  xlab("Rate") + ylab("Length")
+```
+    
+- We performed the Pearson correlation test which shows that the estimate correlation between rate and length is 0.156 (CI: 0.1372389 0.1762458, p = 2.2e-16). This means that there is low correlation between these two variables. 
+
+```{r echo=TRUE, include=FALSE}
+pearson_cor <- cor.test(video$rate, video$length, method = "pearson")
+print(paste("Correlation between rate and length is: ", pearson_cor$estimate))
+print(paste("p-value is: ", pearson_cor$p.value))
+print(paste("Confidence Interval is: ", pearson_cor$conf.int))
+```
+- We also performed the Tolerance and VIF test below. When Tolerance is close to 1 and VIF is less than 5, there is no evidence of the problem of nearly perfect collinearity.
+
+```{r include=TRUE, echo=FALSE,results='asis'}
+stargazer(fit_vif, type = 'latex', title = "Tolerance and VIF Table",digits = 4, out="table1.txt", header = FALSE)
+```
+- Based on the above assessments, we believe this data meets the **No perfect Colinearity** assumption.
+
+
+3.  Evaluate the **Linear Conditional Expectation:** assumption.
+
+- This is an assessment of whether the conditional expectation of Y given X exists and has the linear form, which also means the expected error term is zero. Based on our background knowledge, views of videos are complex observational data and may not simply reflect a linear relationship with rate and length of the video. We further plotted the residuals (the error term) against each input variable (rate and length) and the predicted views to assess whether residuals are close to zero with respect to input variables and the outcome variable.
+    
+- Looking at the graph of residual versus rate (the left graph below), we see that the line of residual average is oscillating around zero but is not flat. The line of residual versus length (the middle graph below) has a downward curvature (deviate from zero) as length increases. These two graphs suggest that there is non-linear relationship between the outcome variable (log(views)) and the input variables. This non-linear relationship is likely causing the line of residuals versus predicted values (the right graph) to curve downward as the predicted views increase. 
+    
+- The evidence presented above shows that the Linear Conditional Expectation assumption is not met. Thus, in order to capture the relationship between outcome variables and input variable, we may need to consider other families of nonlinear models as the linear model does not fully model the complexity of the data. 
+  
+
+```{r echo=FALSE, fig.show="hold", out.width="50%",}
+video <- video %>% mutate(
+  lm_video_predictions = predict(lm_video),
+  lm_video_residuals = resid(lm_video)
+)
+
+plot_rate_vs_residuals <- video %>% ggplot(aes(x = rate, y = lm_video_residuals))+
+  geom_point() + geom_smooth(method = "gam", formula = y ~ s(x, bs = "cs", fx = TRUE, k = 20)) +
+  labs( title = "residuals vs. rate") + xlab("Rate") + ylab("Residuals")
+
+plot_length_vs_residuals <- video %>% ggplot(aes(x = length, y = lm_video_residuals))+
+  geom_point() + geom_smooth(method = "gam", formula = y ~ s(x, bs = "cs", fx = TRUE, k = 20)) +
+  labs( title = "residuals vs.length") + xlab("Length") + ylab("Residuals")
+
+plot_prediction_vs_residuals <- video %>% ggplot(aes(x = lm_video_predictions, y = lm_video_residuals))+
+  geom_point() + geom_smooth(method = "gam", formula = y ~ s(x, bs = "cs", fx = TRUE, k = 20)) +
+  labs( title = "residuals v. prediction") + xlab("log(Predicted Views)") + ylab("Residuals")
+
+plot_rate_vs_residuals
+plot_length_vs_residuals
+plot_prediction_vs_residuals
+# grid.arrange(plot_rate_vs_residuals, plot_length_vs_residuals,plot_prediction_vs_residuals, nrow = 1, ncol = 3)
+```
+
+4.  Evaluate the **Homoskedastic Errors:** assumption.
+
+- To evaluate this assumption, we plotted the residuals against the predicted views and evaluated whether the conditional variance is constant. From the graph below, residuals start around the range of (-4, 4) and widen to the range of (-6, 6) as the log(predicted views) increases from around 4.75 to 8. This is strong evidence that the conditional variance is not constant. 
+
+```{r  plotting prediction versus residuals, echo=FALSE,include=TRUE, out.width="50%",}
+plot_prediction_vs_residuals
+
+```
+    
+- Additionally, we performed the Breusch-Pagan (BP) test where the null hypothesis is that homoscedasticity is present. With BP value of 128.39 and p values less than 2.2e-16 means, we reject the null hypothesis and conclude that there is strong evidence that heteroskedasticity exists in the regression model. Given the heteroskedasticity problem, we should use the robust standard error to evaluate the fit of the classical linear model. While the problem of heteroskedasticity is evident here, one of the key causes could be this linear model is not correctly categorizing the relationship between input and out variable (as noted in our response to the linear conditional assumptions).   
+
+```{r Breusch-Pagan test, echo=FALSE, include=TRUE}
+lmtest::bptest(lm_video)
+
+```
+5.  Evaluate the **Normally Distributed Errors:** assumption.
+
+- From the histogram and Q-Q plots of residuals below, we observe that the residuals’ distribution has a shape of a normal distribution, with slight thin tails (platykurtic). We also measured skewness and kurtosis of the errors, with skewness of 0.05738289 (within +-0.5 of zero, with zero being normal distribution) and kurtosis of 2.784654 (within +-0.5 of 3, with 3 being normal distribution), which further confirms our observation from the graphs. We conclude that there is no strong evidence that this model violates the **Normally Distributed Errors** assumption.
+
+```{r echo=TRUE, include=FALSE}
+skew_score <- skewness(video$lm_video_residuals)
+kurt_score <- kurtosis(video$lm_video_residuals)
+skew_score 
+kurt_score
+```
+
+```{r q-q plot of residuals, echo=FALSE,include=TRUE, fig.show="hold", out.width="50%",}
+plot_1 <- video %>% ggplot(aes(x=lm_video_residuals)) + geom_histogram(bins = 30)
+plot_2 <- video %>% ggplot(aes(sample=lm_video_residuals)) + stat_qq() +stat_qq_line()
+# grid.arrange(plot_1, plot_2, nrow = 1, ncol = 2)
+plot_1
+plot_2
+```
+```
+
+
+
+
+
+

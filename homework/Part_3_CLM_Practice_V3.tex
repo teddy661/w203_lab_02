@@ -1,0 +1,365 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{lmodern}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  pdftitle={HW12: CLM Practice},
+  pdfauthor={The Principal Components - Ed Brown, Daphne Lin, Linh Tran, Lisa Wu},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+
+\title{HW12: CLM Practice}
+\author{The Principal Components - Ed Brown, Daphne Lin, Linh Tran, Lisa
+Wu}
+\date{}
+
+\begin{document}
+\maketitle
+
+\hypertarget{part-2---clm-practice}{%
+\subsection{Part 2 - CLM Practice}\label{part-2---clm-practice}}
+
+For the following questions, your task is to evaluate the Classical
+Linear Model assumptions. It is not enough to say that an assumption is
+met or not met; instead, present evidence based on your background
+knowledge, visualizations, and numerical summaries.
+
+The file \texttt{videos.txt} contains 9618 observations of videos shared
+on YouTube. It was created by Cheng, Dale and Liu at Simon Fraser
+University. Please see \href{http://netsg.cs.sfu.ca/youtubedata/}{this
+link} for details about how the data was collected.
+
+You wish to run the following regression:
+
+\[
+ln(\text{views}) = \beta_0 + \beta_1 \text{rate}  + \beta_3 \text{length}
+\] The variables are as follows:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{views}: the number of views by YouTube users.
+\item
+  \texttt{rate}: This is the average of the ratings that the video
+  received. You may think of this as a proxy for video quality. (Notice
+  that this is different from the variable \texttt{ratings} which is a
+  count of the total number of ratings that a video has received.)
+\item
+  \texttt{length:} the duration of the video in seconds.
+\end{itemize}
+
+Response:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Evaluate the \textbf{IID} assumption
+\end{enumerate}
+
+\begin{itemize}
+\item
+  Assessing the IID assumption requires an analysis of the sample
+  selection design process. Based on our understanding of the selection
+  process, the list of videos was selected from YouTube using a crawling
+  algorithm which starts with a set of videos from the list of
+  ``Recently Featured'', ``Most Viewed'', ``Top Rated'' and ``Most
+  Discussed'', for ``Today'', ``This Week'', ``This Month'' and ``All
+  Time'' and then uses this list to find more related videos. Given this
+  process, we believe that the videos in this dataset are not
+  independently sampled. For example, if the sample time frame is around
+  election time, we would expect that the initial list of ``Recently
+  Featured'' or ``Most Discussed'' videos are more likely to be related
+  to the topic of election for ``Today'' or ``This Week''. In addition,
+  the crawl algorithm adds videos to the list by finding other videos
+  that are directly related to the initial set of videos. Therefore, by
+  the nature of the sampling process, this dataset does not meet the IID
+  assumption.
+\item
+  To address this violation of the IID assumption of the classical
+  linear model, the researchers need to get new data by using a new
+  random sampling process. If the researcher wants to use the same data,
+  perhaps a different model type of model other than the classical
+  linear model would be more suitable to the current dataset.
+\end{itemize}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{1}
+\item
+  Evaluate the \textbf{No perfect Colinearity} assumption.
+
+  In order to assess nearly perfect colinearity, we use our background
+  knowledge to evaluate the input variables (rate and length), examine
+  the coefficients of the model, review the scatter plot of the two
+  variables, and perform correction test and VIF test.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Based on our background knowledge, the length of a video may affect
+    a viewer's rating of the video, but we don't expect near perfect
+    correlation between rate and length, as the content of the video
+    also plays a key role in viewer's rating.
+  \end{itemize}
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lm\_video}\SpecialCharTok{$}\NormalTok{coefficients}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  (Intercept)         rate       length 
+## 5.4109124371 0.4724853515 0.0004680142
+\end{verbatim}
+
+\begin{verbatim}
+- We see that R has not dropped rate or length variable in the model which means that there is no perfect colinearity. 
+
+- We examined the scatter plot of rate vs length below which shows that rate and length has no obvious relationship.
+\end{verbatim}
+
+\includegraphics[width=0.5\linewidth]{Part_3_CLM_Practice_V3_files/figure-latex/unnamed-chunk-7-1}
+
+\begin{itemize}
+\item
+  We performed the Pearson correlation test which shows that the
+  estimate correlation between rate and length is 0.156 (CI: 0.1372389
+  0.1762458, p = 2.2e-16). This means that there is low correlation
+  between these two variables.
+\item
+  We also performed the Tolerance and VIF test below. When Tolerance is
+  close to 1 and VIF is less than 5, there is no evidence of the problem
+  of nearly perfect collinearity.
+\end{itemize}
+
+\begin{table}[!htbp] \centering 
+  \caption{Tolerance and VIF Table} 
+  \label{} 
+\begin{tabular}{@{\extracolsep{5pt}}lccccc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+Statistic & \multicolumn{1}{c}{N} & \multicolumn{1}{c}{Mean} & \multicolumn{1}{c}{St. Dev.} & \multicolumn{1}{c}{Min} & \multicolumn{1}{c}{Max} \\ 
+\hline \\[-1.8ex] 
+Tolerance & 2 & 0.9754 & 0.0000 & 0.9754 & 0.9754 \\ 
+VIF & 2 & 1.0252 & 0.0000 & 1.0252 & 1.0252 \\ 
+\hline \\[-1.8ex] 
+\end{tabular} 
+\end{table}
+
+\begin{itemize}
+\tightlist
+\item
+  Based on the above assessments, we believe this data meets the
+  \textbf{No perfect Colinearity} assumption.
+\end{itemize}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{2}
+\tightlist
+\item
+  Evaluate the \textbf{Linear Conditional Expectation:} assumption.
+\end{enumerate}
+
+\begin{itemize}
+\item
+  This is an assessment of whether the conditional expectation of Y
+  given X exists and has the linear form, which also means the expected
+  error term is zero. Based on our background knowledge, views of videos
+  are complex observational data and may not simply reflect a linear
+  relationship with rate and length of the video. We further plotted the
+  residuals (the error term) against each input variable (rate and
+  length) and the predicted views to assess whether residuals are close
+  to zero with respect to input variables and the outcome variable.
+\item
+  Looking at the graph of residual versus rate (the left graph below),
+  we see that the line of residual average is oscillating around zero
+  but is not flat. The line of residual versus length (the middle graph
+  below) has a downward curvature (deviate from zero) as length
+  increases. These two graphs suggest that there is non-linear
+  relationship between the outcome variable (log(views)) and the input
+  variables. This non-linear relationship is likely causing the line of
+  residuals versus predicted values (the right graph) to curve downward
+  as the predicted views increase.
+\item
+  The evidence presented above shows that the Linear Conditional
+  Expectation assumption is not met. Thus, in order to capture the
+  relationship between outcome variables and input variable, we may need
+  to consider other families of nonlinear models as the linear model
+  does not fully model the complexity of the data.
+\end{itemize}
+
+\includegraphics[width=0.5\linewidth]{Part_3_CLM_Practice_V3_files/figure-latex/unnamed-chunk-10-1}
+\includegraphics[width=0.5\linewidth]{Part_3_CLM_Practice_V3_files/figure-latex/unnamed-chunk-10-2}
+\includegraphics[width=0.5\linewidth]{Part_3_CLM_Practice_V3_files/figure-latex/unnamed-chunk-10-3}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{3}
+\tightlist
+\item
+  Evaluate the \textbf{Homoskedastic Errors:} assumption.
+\end{enumerate}
+
+\begin{itemize}
+\tightlist
+\item
+  To evaluate this assumption, we plotted the residuals against the
+  predicted views and evaluated whether the conditional variance is
+  constant. From the graph below, residuals start around the range of
+  (-4, 4) and widen to the range of (-6, 6) as the log(predicted views)
+  increases from around 4.75 to 8. This is strong evidence that the
+  conditional variance is not constant.
+\end{itemize}
+
+\includegraphics[width=0.5\linewidth]{Part_3_CLM_Practice_V3_files/figure-latex/plotting prediction versus residuals-1}
+
+\begin{itemize}
+\tightlist
+\item
+  Additionally, we performed the Breusch-Pagan (BP) test where the null
+  hypothesis is that homoscedasticity is present. With BP value of
+  128.39 and p values less than 2.2e-16 means, we reject the null
+  hypothesis and conclude that there is strong evidence that
+  heteroskedasticity exists in the regression model. Given the
+  heteroskedasticity problem, we should use the robust standard error to
+  evaluate the fit of the classical linear model. While the problem of
+  heteroskedasticity is evident here, one of the key causes could be
+  this linear model is not correctly categorizing the relationship
+  between input and out variable (as noted in our response to the linear
+  conditional assumptions).
+\end{itemize}
+
+\begin{verbatim}
+## 
+##  studentized Breusch-Pagan test
+## 
+## data:  lm_video
+## BP = 128.39, df = 2, p-value < 2.2e-16
+\end{verbatim}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{4}
+\tightlist
+\item
+  Evaluate the \textbf{Normally Distributed Errors:} assumption.
+\end{enumerate}
+
+\begin{itemize}
+\tightlist
+\item
+  From the histogram and Q-Q plots of residuals below, we observe that
+  the residuals' distribution has a shape of a normal distribution, with
+  slight thin tails (platykurtic). We also measured skewness and
+  kurtosis of the errors, with skewness of 0.05738289 (within +-0.5 of
+  zero, with zero being normal distribution) and kurtosis of 2.784654
+  (within +-0.5 of 3, with 3 being normal distribution), which further
+  confirms our observation from the graphs. We conclude that there is no
+  strong evidence that this model violates the \textbf{Normally
+  Distributed Errors} assumption.
+\end{itemize}
+
+\includegraphics[width=0.5\linewidth]{Part_3_CLM_Practice_V3_files/figure-latex/q-q plot of residuals-1}
+\includegraphics[width=0.5\linewidth]{Part_3_CLM_Practice_V3_files/figure-latex/q-q plot of residuals-2}
+```
+
+\end{document}
