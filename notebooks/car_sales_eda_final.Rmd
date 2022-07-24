@@ -217,7 +217,7 @@ stargazer(car_price_base, title = "Car Price Base Model",
           covariate.labels = c("Power Performance (Log)","Constant"),
           dep.var.labels   = "General Votes",
           se = list(car_price_base_se), star.cutoffs = c(0.05, 0.01, 0.001),
-          digits = 4, out="table1.txt", type = "text", header = FALSE)
+          digits = 4, type = "text", header = FALSE)
 coeftest(car_price_base, vconv = vcovHC(type = "HC1"))
 plot(car_price_base)
 lmtest::bptest(car_price_base)
