@@ -90,11 +90,13 @@ car_sales$model <- as.factor(car_sales$model)
 car_sales$vehicle_type <- as.factor(car_sales$vehicle_type)
 # Vehicle Tier L = Luxury; S = Standard; E = Economy
 # Convert to Factor and Re-Level to Luxury as Base Model
-car_sales[, "vehicle_tier"] <- relevel(as.factor(car_sales$vehicle_tier), 
-                                       ref = "L")
+car_sales[, "vehicle_tier"] <- relevel(as.factor(car_sales$vehicle_tier),
+  ref = "L"
+)
 # Convert Dates
-car_sales$latest_launch <- as.POSIXct(car_sales$latest_launch, 
-                                      format = "%m/%d/%Y")
+car_sales$latest_launch <- as.POSIXct(car_sales$latest_launch,
+  format = "%m/%d/%Y"
+)
 ```
 ```{r transform data and add our required study parameters, include=FALSE}
 car_sales <- car_sales %>%
@@ -109,15 +111,17 @@ car_sales <- car_sales %>%
     ln_range = log(vehicle_range),
     vehicle_size = length * width,
     ln_vehicle_size = log(vehicle_size),
-    sqrt_vehicle_size = ln_vehicle_size ^ 0.5,
+    sqrt_vehicle_size = ln_vehicle_size^0.5,
     density = curb_weight / ln_vehicle_size,
     ln_density = log(density),
-    power_weight_ratio = horsepower / curb_weight, 
+    power_weight_ratio = horsepower / curb_weight,
     ln_power_weight_ratio = log(power_weight_ratio),
-    days_since_refresh = as.numeric(difftime(as.POSIXct(Sys.Date(), tz = "UTC"), 
-                                             latest_launch, units = "days"))
+    days_since_refresh = as.numeric(difftime(as.POSIXct(Sys.Date(), tz = "UTC"),
+      latest_launch,
+      units = "days"
+    ))
   )
-car_sales$refresh_normalized <- 
+car_sales$refresh_normalized <-
   car_sales$days_since_refresh / max(car_sales$days_since_refresh)
 ```
 
@@ -177,7 +181,6 @@ ln_price_vs_vehicle_size <- ggplot(car_sales, aes(x = vehicle_size, y = ln_price
 ln_price_vs_sqr_vehicle_size <- ggplot(car_sales, aes(x = sqrt_vehicle_size, y = ln_price_000)) +
   geom_point() +
   geom_smooth(method = lm, formula = y ~ x)
-
 ```
 
 ```{r display xy plots, echo=FALSE}
@@ -187,18 +190,24 @@ complete_xy_plots <- ggarrange(
 complete_xy_plots
 ```
 ```{r car price and power performance graph, echo=FALSE,include=TRUE}
-ggplot(car_sales, aes(x=ln_power_perf, y=ln_price_000, color = vehicle_tier)) +
-  geom_point()+ geom_smooth(method = lm, formula = y ~ x) +
+ggplot(car_sales, aes(x = ln_power_perf, y = ln_price_000, color = vehicle_tier)) +
+  geom_point() +
+  geom_smooth(method = lm, formula = y ~ x) +
   labs(title = "Figure 1: Car Price and Power Performance Plot by Vehicle Tier", x = "Power Performance (in natural log)", y = "Price in Thousands (in natural log)") +
-  scale_color_manual(name="Vehicle Tier",
-                       labels=c("Luxury","Economy","Standard"),
-                       values=c("red","green","blue"))
-ggplot(car_sales, aes(x=ln_vehicle_size, y=ln_price_000, color = vehicle_tier)) +
-  geom_point()+ geom_smooth(method = lm, formula = y ~ x) +
+  scale_color_manual(
+    name = "Vehicle Tier",
+    labels = c("Luxury", "Economy", "Standard"),
+    values = c("red", "green", "blue")
+  )
+ggplot(car_sales, aes(x = ln_vehicle_size, y = ln_price_000, color = vehicle_tier)) +
+  geom_point() +
+  geom_smooth(method = lm, formula = y ~ x) +
   labs(title = "Figure 2: Car Price and Vehicle Size Plot by Vehicle Tier", x = "Vehicle Size (in natural log)", y = "Price in Thousands (in natural log)") +
-  scale_color_manual(name="Vehicle Tier",
-                       labels=c("Luxury","Economy","Standard"),
-                       values=c("red","green","blue"))
+  scale_color_manual(
+    name = "Vehicle Tier",
+    labels = c("Luxury", "Economy", "Standard"),
+    values = c("red", "green", "blue")
+  )
 ```
 
 ```{r proposed first model, include=FALSE, echo=FALSE}
@@ -213,11 +222,13 @@ car_price_base_se <- car_price_base %>%
   vcovHC(type = "HC1") %>%
   diag() %>%
   sqrt()
-stargazer(car_price_base, title = "Car Price Base Model",
-          covariate.labels = c("Power Performance (Log)","Constant"),
-          dep.var.labels   = "General Votes",
-          se = list(car_price_base_se), star.cutoffs = c(0.05, 0.01, 0.001),
-          digits = 4, type = "text", header = FALSE)
+stargazer(car_price_base,
+  title = "Car Price Base Model",
+  covariate.labels = c("Power Performance (Log)", "Constant"),
+  dep.var.labels = "General Votes",
+  se = list(car_price_base_se), star.cutoffs = c(0.05, 0.01, 0.001),
+  digits = 4, type = "text", header = FALSE
+)
 coeftest(car_price_base, vconv = vcovHC(type = "HC1"))
 plot(car_price_base)
 lmtest::bptest(car_price_base)
