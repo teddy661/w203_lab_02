@@ -112,6 +112,8 @@ car_sales <- car_sales %>%
     sqrt_vehicle_size = ln_vehicle_size ^ 0.5,
     density = curb_weight / ln_vehicle_size,
     ln_density = log(density),
+    power_weight_ratio = horsepower / curb_weight, 
+    ln_power_weight_ratio = log(power_weight_ratio),
     days_since_refresh = as.numeric(difftime(as.POSIXct(Sys.Date(), tz = "UTC"), 
                                              latest_launch, units = "days"))
   )
@@ -134,13 +136,19 @@ hist_vehicle_size <- ggplot(car_sales, aes(x = vehicle_size)) +
   geom_histogram(bins = 60)
 hist_ln_vehicle_size <- ggplot(car_sales, aes(x = ln_vehicle_size)) +
   geom_histogram(bins = 60)
+
+hist_power_weight_ratio <- ggplot(car_sales, aes(x = power_weight_ratio)) +
+  geom_histogram(bins = 60)
+hist_ln_power_weight_ratio <- ggplot(car_sales, aes(x = ln_power_weight_ratio)) +
+  geom_histogram(bins = 60)
 ```
 \newpage
 ```{r display histograms, echo=FALSE, message=FALSE, warning=FALSE}
 complete_histograms <- ggarrange(
   hist_price, hist_ln_price,
   hist_power_perf, hist_ln_power_perf,
-  hist_vehicle_size, hist_ln_vehicle_size
+  hist_vehicle_size, hist_ln_vehicle_size,
+  hist_power_weight_ratio, hist_ln_power_weight_ratio
 )
 complete_histograms
 ```
@@ -262,7 +270,7 @@ stargazer(car_price_base, car_base_size, car_size_tier,
   dep.var.caption = "Output Variable: Price in Thousands of Dollars (in natural log)",
   dep.var.labels = "",
   star.cutoffs = c(0.05, 0.01, 0.001),
-  covariate.labels = c("Power Performance Ratio (in natural log)", "Vehicle Tier-Economy", "Vehicle Tier-Mid", "Vehicle Size", "constant"),
+  covariate.labels = c("Power Performance Ratio (in natural log)", "Vehicle Tier-Economy", "Vehicle Tier-Mid", "Vehicle Size", "Constant"),
   notes = "\\parbox[t]{.55\\textwidth}{$HC_1$ robust standard errors in parentheses. Luxury Vehicles are the base Tier}", notes.align = "l"
 )
 ```
