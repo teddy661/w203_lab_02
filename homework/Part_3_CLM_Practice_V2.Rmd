@@ -1,6 +1,7 @@
 ---
 title: "HW12: CLM Practice"
-author: 'The Principal Components - Ed Brown, Daphne Lin, Linh Tran, Lisa Wu '
+date: "`r Sys.Date()`"
+author: 'The Principal Components Group - Ed Brown, Daphne Lin, Linh Tran, Lisa Wu '
 output: pdf_document
 ---
 
@@ -138,7 +139,7 @@ print(paste("Correlation between rate and length is: ", pearson_cor$estimate))
 print(paste("p-value is: ", pearson_cor$p.value))
 print(paste("Confidence Interval is: ", pearson_cor$conf.int))
 ```
-- We also performed the Tolerance and VIF test below. When Tolerance is close to 1 and VIF is less than 10, there is no evidence of the problem of multicollinearity.
+- We also performed the Variance Inflation Factor (VIF) test below. When VIF is less than 10, there is no evidence of the problem of multicollinearity among the input variables (rate and length).
 
 ```{r include=TRUE, echo=FALSE,results='asis'}
 stargazer(fit_vif, type = 'latex', title = "Tolerance and VIF Table",digits = 4, out="table1.txt", header = FALSE)
