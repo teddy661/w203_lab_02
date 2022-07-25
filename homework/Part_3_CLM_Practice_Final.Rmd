@@ -202,22 +202,14 @@ print(paste("Correlation between rate and length is: ", cor_rate_length))
 
 **Response: **
 
-Summary of EDA Work:
+**A. Summary of EDA Work**
 
 - We performed extensive EDA work to understand the sample collection process and the dataset. During our data wrangling process, we took the following actions to improve the data quality and model interpretability.  The original dataset has 9618 observations, and our final dataset has 9558 observations after removing 60 observations. 
   - Removed 9 observations with NA in rate and length field 
-  - Removed 51 observations with video length more than 11 minutes (considered as outliers) to address the multimodal distribution issues (see more details in #1 below)
-  - For 1490 rows with 0 value in the rate field, we believe that this is likely due to viewers not assigning a rating and not because viewers assigning a 0 rating.  Therefore, we replaced the 0 rating with the mean rating of the dataset
   
-- We conducted assessment of the five assumptions for the OLS regression below:
-
-1.  Evaluate the **IID** assumption
-
-- Assessing the IID assumption requires an analysis of the sample selection design process. Based on our understanding of the selection process, the list of videos was selected from YouTube using a crawling algorithm which starts with a set of videos from the list of "Recently Featured", "Most Viewed", "Top Rated" and "Most Discussed", for "Today", "This Week", "This Month" and "All Time" and then uses this list to find more related videos. Given this process, we believe that the videos in this dataset are not independently sampled. For example, if the sample time frame is around election time, we would expect that the initial list of "Recently Featured" or "Most Discussed" videos are more likely to be related to the topic of election for "Today" or "This Week". In addition, the crawl algorithm adds videos to the list by finding other videos that are directly related to the initial set of videos. Therefore, by the nature of the sampling process, this dataset does not meet the IID assumption. 
-
-- In addition, based on the histogram of the length variable, there are a small number of videos (51 videos, ~0.5% of the total videos) that are longer than 11 minutes (outliers) which suggests multimodal distribution (a distribution with more than one mode), which may indicate violation of identical distribution. In our EDA work, we considered removing the 51 videos from the final dataset as these videos may have a different distribution, which improves the sample data quality for the model.  See below the chart that compares the video length histogram with and without the outliers.  
-
-- To address this violation of the **IID** assumption of the classical linear model, one of the mitigating solutions to consider is get new data by using a new random sampling process.
+  - Removed 51 observations with video length more than 11 minutes (considered as outliers) to address the multimodal distribution issues.  Based on the histogram of the length variable, there are a small number of videos (51 videos, ~0.5% of the total videos) that are longer than 11 minutes (outliers) which suggests multimodal distribution (a distribution with more than one mode), which may indicate violation of identical distribution. In our EDA work, we considered removing the 51 videos from the final dataset as these videos may have a different distribution, which improves the sample data quality for the model.  See below the chart that compares the video length histogram with and without the outliers.
+  
+  - For 1490 rows with 0 value in the rate field, we believe that this is likely due to viewers not assigning a rating and not because viewers assigning a 0 rating.  Therefore, we replaced the 0 rating with the mean rating of the dataset
 
 ```{r echo=FALSE,include=TRUE}
 par(mfrow=c(1,2))
@@ -228,19 +220,32 @@ hist(video_2$length, breaks = 60, xlab='Length in Seconds', main="Length Histogr
 par(mfrow=c(1,1))
 ```
 
+
+**B. Evaluate five CLM Assumptions**
+
+We run the linear regression model on the final dataset of *9558* observations.  See our assessment below.
+
+1.  Evaluate the **IID** assumption
+
+- Assessing the IID assumption requires an analysis of the sample selection design process. Based on our understanding of the selection process, the list of videos was selected from YouTube using a crawling algorithm which starts with a set of videos from the list of "Recently Featured", "Most Viewed", "Top Rated" and "Most Discussed", for "Today", "This Week", "This Month" and "All Time" and then uses this list to find more related videos. This sampling process does not general independent samples, and we believe that the videos in this dataset have clustering issues and are related to each other in content or in time sequence. For example, if the sample time frame is around election time, we would expect that the initial list of "Recently Featured" or "Most Discussed" videos are more likely to be related to the topic of election for "Today" or "This Week". In addition, the crawl algorithm adds videos to the list by finding other videos that are directly related to the initial set of videos. Therefore, by the nature of the sampling process, this dataset does not meet the **IID** assumption. 
+
+- To address this violation of the IID assumption of the classical linear model, one of the mitigating solutions to consider is get new data by using a new random sampling process.
+
+
+
 \newpage
 
 2.  Evaluate the **No perfect Colinearity** assumption. 
 
-    In order to assess nearly perfect colinearity, we use our background knowledge to evaluate the input variables (rate and length), examine the coefficients of the model, review the scatter plot of the two variables, and perform correction test and VIF test. 
+    In order to assess nearly perfect colinearity, we use our background knowledge to evaluate the relationship between rate and length, examine the scatter plot of the two input variables, and perform correction test and VIF test. 
     - Based on our background knowledge, the length of a video may affect a viewer's rating of the video, but we don't expect near perfect correlation between rate and length, as the content of the video also plays a key role in viewer's rating.
     
 ```{r include=FALSE}
 lm_video$coefficients
 ```
-    - We see that the regression model has not dropped rate or length variable automatically which means that there is no perfect colinearity. 
+    - The regression model has not dropped rate or length variable automatically which means that there is no perfect colinearity. 
 
-    - We examined the scatter plot of rate vs length below which shows that rate and length has no obvious relationship.  Please note in our EDA work, we observed for 1490 videos with 0 rating, which is very likely because viewers did not rate the videos (and not because viewers assigned a 0 rating). Therefore we chose to replace the 0 rating with the mean rating (3.744057) of the dataset, to improve the data interpretability. 
+    - We examined the scatter plot of rate vs length below which shows that rate and length do not have strong relationship.  Please note in our EDA work, we observed for 1490 videos with 0 rating, which is very likely because viewers did not rate the videos (and not because viewers assigned a 0 rating). Therefore we chose to replace the 0 rating with the mean rating (3.744057) of the dataset, to improve the data interpretability. 
     
 ```{r warning=FALSE,echo=FALSE,include=TRUE, out.width="50%",}
 ggplot(data = video_2, aes(x = rate, y = length_min)) +
@@ -269,9 +274,9 @@ stargazer(fit_vif, type = 'latex', title = "Tolerance and VIF Table",digits = 4,
 
 3.  Evaluate the **Linear Conditional Expectation:** assumption.
 
-- This is an assessment of whether the conditional expectation of Y given X exists and has the linear form, which also means the expected error term is zero. Based on our background knowledge, views of videos are complex observational data and may not simply reflect a linear relationship with rate and length of the video. We further plotted the residuals (the error term) against each input variable (rate and length) and the predicted views to assess whether residuals are close to zero with respect to input variables and the outcome variable.
+- This is an assessment of whether the conditional expectation of Y given X exists and has the linear form, which also means the expected error term is zero. Based on our background knowledge, views of videos are complex observational data and may not simply reflect a linear relationship with rate and length of the video. We further plotted the residuals (the error term) against each input variable (rate and length) and the outcome variable (predicted views) to assess whether residuals are close to zero with respect to input variables and the outcome variable.
 
-- Using our final 9558 observations, we plotted the residuals with our input variables (rate and length) and outcome variables (log views). Looking at the graph of residual versus rate (the left graph below), we see that the line of residual average is oscillating around zero. The line of residual versus length (the right graph below) is relative flat, which has improved from the original chart if we were to use the length data without removing the outliers (videos longer than 11 minutes). The line of residuals versus fitted values (the bottom graph) is generally around zero.  Please note that if we were to generate the model using the original 9618 observations without removing the 60 outliers, the line of residuals versus fitted values would not be flat (a violation of the linear conditional expectation).  
+- Using our final 9558 observations, we plotted the residuals with our input variables (rate and length) and outcome variables (log views). Looking at the graph of residual versus rate (the left graph below), we see that the line of residual average is oscillating around zero. The line of residual versus length (the right graph below) is relative flat, which has improved from the original chart if we were to use the length data without removing the outliers (videos longer than 11 minutes). The line of residuals versus fitted values (the bottom graph) is generally around zero.  Please note that when we generated the model using the original 9618 observations without removing the 60 outliers, we observed the line of residuals versus fitted values were not flat and curved downward (a violation of the linear conditional expectation).  
 
 ```{r echo=FALSE, fig.show="hold", out.width="50%",}
 video_2 <- video_2 %>% 
@@ -301,21 +306,21 @@ plot(lm_video, which = 1)
 ```
 
 
-- With our EDA data wrangling work, the Linear Conditional Expectation assumption is generally met in our final model. Note that this assumption would have been violated if we were to use the original 9618 observations in the OLS regression model. 
+- With our EDA data wrangling work, our final model meets the Linear Conditional Expectation assumption. Note that this assumption would have been violated if we were to use the original 9618 observations for OLS regression. 
 
 
 \newpage
 
 4.  Evaluate the **Homoskedastic Errors:** assumption.
 
-- To evaluate this assumption, we plotted the residuals against the predicted views and evaluated whether the conditional variance is constant. Our visual observation is that the variance is generally constant, no clear evidence of heteroskedasticity. If we were to use the original 9618 observations, there were strong evidences that the variance increased as fitted value increased, which suggested the problem of heteroskedasticity.  Our final dataset appears to fix the problem of heteroskedasticity in the original dataset.
+- To evaluate this assumption, we plotted the standardized residuals against the fitted values. Our visual observation is that the variances stay constant (in the range of 0 to 1.5 for all fitted values), no strong evidence of heteroskedasticity. Please note that when we used the *original 9618* observations, we observed strong evidences that the variance increased as fitted value increased, which suggested the problem of heteroskedasticity.  Our final model does not show evidence of the problem of heteroskedasticity.
 
 ```{r  plotting prediction versus residuals, echo=FALSE,include=TRUE, out.width="50%",}
 plot(lm_video, which = 3)
 
 ```
     
-- Additionally, we performed the Breusch-Pagan (BP) test where the null hypothesis is that homoscedasticity is present. with BP value of 3.16 and p-value of 0.20, we fail to reject the null hypothesis of Homoskedastic Errors.  Please note that with the original dataset, the model would have BP value of 128.39 and p values less than 2.2e-16, which shows strong evidence that heteroskedasticity exists in the regression model. So our final model does not violate the Homoskedastic Errors assumption. 
+- Additionally, we performed the Breusch-Pagan (BP) test where the null hypothesis is that homoscedasticity is present. with BP value of 3.16 and p-value of 0.20, we fail to reject the null hypothesis of Homoskedastic Errors.  Please note that with the original dataset of 9618 observations, the model would have BP value of 128.39 and p values less than 2.2e-16, which shows strong evidence that heteroskedasticity exists in the regression model. In summary, our final model meets the **Homoskedastic Errors** assumption. 
 
 ```{r Breusch-Pagan test, echo=FALSE, include=TRUE}
 lmtest::bptest(lm_video)
@@ -346,7 +351,7 @@ kurt_residuals <- kurtosis(lm_video$residuals)
 print(paste0("Skewness of Residuals is: ", skew_residuals))
 print(paste0("Kurtosis of Residuals is: ", kurt_residuals))
 ```
-Finally, please see our final model regression table below:
+**C. Final Regression Model Coefficients and Test Results**
 
 ```{r regression table, echo=FALSE, include=TRUE, results = 'asis'}
 #check on Robust Standard Error
