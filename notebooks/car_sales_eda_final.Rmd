@@ -88,10 +88,14 @@ car_sales <- car_sales[!is.na(car_sales$power_perf), ]
 car_sales$manufacturer <- as.factor(car_sales$manufacturer)
 car_sales$model <- as.factor(car_sales$model)
 car_sales$vehicle_type <- as.factor(car_sales$vehicle_type)
+car_sales$region <- as.factor(car_sales$region)
 # Vehicle Tier L = Luxury; S = Standard; E = Economy
 # Convert to Factor and Re-Level to Luxury as Base Model
 car_sales[, "vehicle_tier"] <- relevel(as.factor(car_sales$vehicle_tier),
   ref = "L"
+)
+car_sales[, "region"] <- relevel(as.factor(car_sales$region),
+  ref = "USA"
 )
 # Convert Dates
 car_sales$latest_launch <- as.POSIXct(car_sales$latest_launch,
@@ -167,7 +171,7 @@ complete_histograms
 ```
 
 ```{r box plots for vehicle class, echo=FALSE}
-vehicle_tier_boxplot <- ggplot(car_sales, aes(x = vehicle_tier, y = price_000)) +
+vehicle_tier_boxplot <- ggplot(car_sales, aes(x = region, y = price_000)) +
   labs(title = "Price by Vehicle Tier", x = "Vehicle Tier", y = "Price in Thousands") +
   geom_boxplot(
     outlier.colour = "red", outlier.shape = 8,
@@ -254,7 +258,7 @@ plot(1, main = 1)
 plot(2, main = 2)
 plot(3, main = 3)
 plot(4, main = 4)
-car_base_size <- car_sales %>% lm(ln_price_000 ~ ln_power_perf + ln_vehicle_size, data = .)
+car_base_size <- car_sales %>% lm(ln_price_000 ~ ln_power_perf + vehicle_tier, data = .)
 car_base_size_se <- car_base_size %>%
   vcovHC(type = "HC1") %>%
   diag() %>%
@@ -272,7 +276,7 @@ plot(1, main = 1)
 plot(2, main = 2)
 plot(3, main = 3)
 plot(4, main = 4)
-car_size_tier <- car_sales %>% lm(ln_price_000 ~ ln_power_perf + vehicle_tier + ln_vehicle_size, data = .)
+car_size_tier <- car_sales %>% lm(ln_price_000 ~ ln_power_perf + region + ln_curb_weight, data = .)
 car_size_tier_se <- car_size_tier %>%
   vcovHC(type = "HC1") %>%
   diag() %>%
@@ -293,7 +297,7 @@ stargazer(car_price_base, car_base_size, car_size_tier,
   dep.var.caption = "Output Variable: Price in Thousands of Dollars (in natural log)",
   dep.var.labels = "",
   star.cutoffs = c(0.05, 0.01, 0.001),
-  covariate.labels = c("Power Performance Ratio (in natural log)", "Vehicle Tier-Economy", "Vehicle Tier-Mid", "Vehicle Size", "Constant"),
+  covariate.labels = c("Power Performance Ratio (in natural log)", "Vehicle Tier-Economy", "Vehicle Tier-Mid", "Constant"),
   notes = "\\parbox[t]{.55\\textwidth}{$HC_1$ robust standard errors in parentheses. Luxury Vehicles are the base Tier}", notes.align = "l"
 )
 ```
