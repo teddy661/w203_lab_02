@@ -79,7 +79,7 @@ colnames(car_sales)[17] <- "vehicle_tier"
 # Remove one row "Town & Country" has no values
 car_sales <- car_sales[!(car_sales$model == "Town & Country"), ]
 
-# Remove all rows with missing power_performance information (1 row)
+# Remove all rows with missing power_performance information (2 rows)
 car_sales <- car_sales[!is.na(car_sales$power_perf), ]
 car_sales <- car_sales[!is.na(car_sales$curb_weight), ]
 ```
@@ -158,6 +158,11 @@ hist_hp_per_liter <- ggplot(car_sales, aes(x = hp_per_liter)) +
   geom_histogram(bins = 60)
 hist_ln_hp_per_liter <- ggplot(car_sales, aes(x = ln_hp_per_liter)) +
   geom_histogram(bins = 60)
+
+hist_curb_weight <- ggplot(car_sales, aes(x = curb_weight)) +
+  geom_histogram(bins = 60)
+hist_ln_curb_weight <- ggplot(car_sales, aes(x = ln_curb_weight)) +
+  geom_histogram(bins = 60)
 ```
 \newpage
 ```{r display histograms, echo=FALSE, message=FALSE, warning=FALSE}
@@ -166,14 +171,15 @@ complete_histograms <- ggarrange(
   hist_power_perf, hist_ln_power_perf,
   hist_vehicle_size, hist_ln_vehicle_size,
   hist_power_weight_ratio, hist_ln_power_weight_ratio,
-  hist_hp_per_liter, hist_ln_hp_per_liter
+  hist_hp_per_liter, hist_ln_hp_per_liter,
+  hist_curb_weight, hist_ln_curb_weight
 )
 complete_histograms
 ```
 
 ```{r box plots for vehicle class, echo=FALSE}
 vehicle_tier_boxplot <- ggplot(car_sales, aes(x = region, y = price_000)) +
-  labs(title = "Price by Vehicle Tier", x = "Region", y = "Price in Thousands") +
+  labs(title = "Price by Region", x = "Region", y = "Price in Thousands") +
   geom_boxplot(
     outlier.colour = "red", outlier.shape = 8,
     outlier.size = 4,
@@ -205,33 +211,36 @@ ln_price_vs_region <- ggplot(car_sales, aes(x = region, y = ln_price_000)) +
 ln_price_vs_weight <- ggplot(car_sales, aes(x = curb_weight, y = ln_price_000)) +
   geom_point() +
   geom_smooth(method = lm, formula = y ~ x)
+ln_price_vs_ln_weight <- ggplot(car_sales, aes(x = ln_curb_weight, y = ln_price_000)) +
+  geom_point() +
+  geom_smooth(method = lm, formula = y ~ x)
 ```
 
 ```{r display xy plots, echo=FALSE}
 complete_xy_plots <- ggarrange(
-  ln_price_vs_ln_power_perf, ln_price_vs_ln_vehicle_size, ln_price_vs_vehicle_size, ln_price_vs_sqr_vehicle_size, ln_price_vs_hp_per_liter, ln_price_vs_region, ln_price_vs_weight
+  ln_price_vs_ln_power_perf, ln_price_vs_ln_vehicle_size, ln_price_vs_vehicle_size, ln_price_vs_sqr_vehicle_size, ln_price_vs_hp_per_liter, ln_price_vs_region, ln_price_vs_weight, ln_price_vs_ln_weight
 )
 complete_xy_plots
 ```
 ```{r car price and power performance graph, echo=FALSE,include=TRUE}
-ggplot(car_sales, aes(x = ln_power_perf, y = ln_price_000, color = vehicle_tier)) +
-  geom_point() +
-  geom_smooth(method = lm, formula = y ~ x) +
-  labs(title = "Figure 1: Car Price and Power Performance Plot by Vehicle Tier", x = "Power Performance (in natural log)", y = "Price in Thousands (in natural log)") +
-  scale_color_manual(
-    name = "Vehicle Tier",
-    labels = c("Luxury", "Economy", "Standard"),
-    values = c("red", "green", "blue")
-  )
-ggplot(car_sales, aes(x = ln_vehicle_size, y = ln_price_000, color = vehicle_tier)) +
-  geom_point() +
-  geom_smooth(method = lm, formula = y ~ x) +
-  labs(title = "Figure 2: Car Price and Vehicle Size Plot by Vehicle Tier", x = "Vehicle Size (in natural log)", y = "Price in Thousands (in natural log)") +
-  scale_color_manual(
-    name = "Vehicle Tier",
-    labels = c("Luxury", "Economy", "Standard"),
-    values = c("red", "green", "blue")
-  )
+# ggplot(car_sales, aes(x = ln_power_perf, y = ln_price_000, color = vehicle_tier)) +
+#   geom_point() +
+#   geom_smooth(method = lm, formula = y ~ x) +
+#   labs(title = "Figure 1: Car Price and Power Performance Plot by Vehicle Tier", x = "Power Performance (in natural log)", y = "Price in Thousands (in natural log)") +
+#   scale_color_manual(
+#     name = "Vehicle Tier",
+#     labels = c("Luxury", "Economy", "Standard"),
+#     values = c("red", "green", "blue")
+#   )
+# ggplot(car_sales, aes(x = ln_vehicle_size, y = ln_price_000, color = vehicle_tier)) +
+#   geom_point() +
+#   geom_smooth(method = lm, formula = y ~ x) +
+#   labs(title = "Figure 2: Car Price and Vehicle Size Plot by Vehicle Tier", x = "Vehicle Size (in natural log)", y = "Price in Thousands (in natural log)") +
+#   scale_color_manual(
+#     name = "Vehicle Tier",
+#     labels = c("Luxury", "Economy", "Standard"),
+#     values = c("red", "green", "blue")
+#   )
 
 ggplot(car_sales, aes(x = ln_power_perf, y = ln_price_000, color = region)) +
   geom_point() +
@@ -316,6 +325,6 @@ stargazer(car_price_base, car_base_size, car_size_tier,
   dep.var.labels = "",
   star.cutoffs = c(0.05, 0.01, 0.001),
   covariate.labels = c("Power Performance Ratio (in natural log)", "Asia", "Europe", "Weight", "Constant"),
-  notes = "\\parbox[t]{.55\\textwidth}{$HC_1$ robust standard errors in parentheses. Luxury Vehicles are the base Tier}", notes.align = "l"
+  notes = "\\parbox[t]{.55\\textwidth}{$HC_1$ robust standard errors in parentheses. American Vehicles are the base Tier}", notes.align = "l"
 )
 ```
