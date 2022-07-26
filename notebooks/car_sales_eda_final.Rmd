@@ -81,6 +81,7 @@ car_sales <- car_sales[!(car_sales$model == "Town & Country"), ]
 
 # Remove all rows with missing power_performance information (1 row)
 car_sales <- car_sales[!is.na(car_sales$power_perf), ]
+car_sales <- car_sales[!is.na(car_sales$curb_weight), ]
 ```
 
 ```{r convert columns to appropriate types, include=FALSE}
