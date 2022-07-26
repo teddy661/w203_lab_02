@@ -172,7 +172,7 @@ complete_histograms
 
 ```{r box plots for vehicle class, echo=FALSE}
 vehicle_tier_boxplot <- ggplot(car_sales, aes(x = region, y = price_000)) +
-  labs(title = "Price by Vehicle Tier", x = "Vehicle Tier", y = "Price in Thousands") +
+  labs(title = "Price by Vehicle Tier", x = "Region", y = "Price in Thousands") +
   geom_boxplot(
     outlier.colour = "red", outlier.shape = 8,
     outlier.size = 4,
@@ -180,6 +180,7 @@ vehicle_tier_boxplot <- ggplot(car_sales, aes(x = region, y = price_000)) +
   )
 vehicle_tier_boxplot + stat_summary(fun = mean, geom = "point", shape = 23, size = 4)
 ```
+
 
 ```{r xy plots for independent dependent variable combinations, message=FALSE, warning=FALSE, include=FALSE}
 ln_price_vs_ln_power_perf <- ggplot(car_sales, aes(x = ln_power_perf, y = ln_price_000)) +
@@ -197,11 +198,17 @@ ln_price_vs_sqr_vehicle_size <- ggplot(car_sales, aes(x = sqrt_vehicle_size, y =
 ln_price_vs_hp_per_liter <- ggplot(car_sales, aes(x = ln_hp_per_liter, y = ln_price_000)) +
   geom_point() +
   geom_smooth(method = lm, formula = y ~ x)
+ln_price_vs_region <- ggplot(car_sales, aes(x = region, y = ln_price_000)) +
+  geom_point() +
+  geom_smooth(method = lm, formula = y ~ x)
+ln_price_vs_weight <- ggplot(car_sales, aes(x = curb_weight, y = ln_price_000)) +
+  geom_point() +
+  geom_smooth(method = lm, formula = y ~ x)
 ```
 
 ```{r display xy plots, echo=FALSE}
 complete_xy_plots <- ggarrange(
-  ln_price_vs_ln_power_perf, ln_price_vs_ln_vehicle_size, ln_price_vs_vehicle_size, ln_price_vs_sqr_vehicle_size, ln_price_vs_hp_per_liter
+  ln_price_vs_ln_power_perf, ln_price_vs_ln_vehicle_size, ln_price_vs_vehicle_size, ln_price_vs_sqr_vehicle_size, ln_price_vs_hp_per_liter, ln_price_vs_region, ln_price_vs_weight
 )
 complete_xy_plots
 ```
@@ -222,6 +229,16 @@ ggplot(car_sales, aes(x = ln_vehicle_size, y = ln_price_000, color = vehicle_tie
   scale_color_manual(
     name = "Vehicle Tier",
     labels = c("Luxury", "Economy", "Standard"),
+    values = c("red", "green", "blue")
+  )
+
+ggplot(car_sales, aes(x = ln_power_perf, y = ln_price_000, color = region)) +
+  geom_point() +
+  geom_smooth(method = lm, formula = y ~ x) +
+  labs(title = "Figure 3: Car Price and Power Performance Plot by Manufacturer Region", x = "Power Performance (in natural log)", y = "Price in Thousands (in natural log)") + 
+  scale_color_manual(
+    name = "Manufacturer Region",
+    labels = c("US", "Asia", "Europe"),
     values = c("red", "green", "blue")
   )
 ```
@@ -258,7 +275,7 @@ plot(1, main = 1)
 plot(2, main = 2)
 plot(3, main = 3)
 plot(4, main = 4)
-car_base_size <- car_sales %>% lm(ln_price_000 ~ ln_power_perf + vehicle_tier, data = .)
+car_base_size <- car_sales %>% lm(ln_price_000 ~ ln_power_perf + region, data = .)
 car_base_size_se <- car_base_size %>%
   vcovHC(type = "HC1") %>%
   diag() %>%
@@ -269,14 +286,14 @@ plot(car_base_size)
 lmtest::bptest(car_base_size)
 ols_vif_tol(car_base_size)
 ```
-```{r proposed third model, include=FALSE}
+```{r proposed third model, include=True}
 ## Proposed Third Model (Ed)
 layout(matrix(c(1, 2, 3, 4), nrow = 2, ncol = 2, byrow = TRUE))
 plot(1, main = 1)
 plot(2, main = 2)
 plot(3, main = 3)
 plot(4, main = 4)
-car_size_tier <- car_sales %>% lm(ln_price_000 ~ ln_power_perf + region + ln_curb_weight, data = .)
+car_size_tier <- car_sales %>% lm(ln_price_000 ~ ln_power_perf + region + curb_weight, data = .)
 car_size_tier_se <- car_size_tier %>%
   vcovHC(type = "HC1") %>%
   diag() %>%
@@ -290,14 +307,14 @@ ols_vif_tol(car_size_tier)
 
 ```{r final regression table, message=FALSE, echo=FALSE, results='asis', warning=FALSE}
 stargazer(car_price_base, car_base_size, car_size_tier,
-  type = "latex",
+  type = "text",
   se = list(car_price_base_se, car_base_size_se, car_size_tier_se),
   header = FALSE,
   title = "Estimated Car Price Linear Regression Models",
   dep.var.caption = "Output Variable: Price in Thousands of Dollars (in natural log)",
   dep.var.labels = "",
   star.cutoffs = c(0.05, 0.01, 0.001),
-  covariate.labels = c("Power Performance Ratio (in natural log)", "Vehicle Tier-Economy", "Vehicle Tier-Mid", "Constant"),
+  covariate.labels = c("Power Performance Ratio (in natural log)", "Asia", "Europe", "Weight", "Constant"),
   notes = "\\parbox[t]{.55\\textwidth}{$HC_1$ robust standard errors in parentheses. Luxury Vehicles are the base Tier}", notes.align = "l"
 )
 ```
