@@ -296,7 +296,7 @@ plot(car_base_size)
 lmtest::bptest(car_base_size)
 ols_vif_tol(car_base_size)
 ```
-```{r proposed third model, include=True}
+```{r proposed third model, include=TRUE}
 ## Proposed Third Model (Ed)
 layout(matrix(c(1, 2, 3, 4), nrow = 2, ncol = 2, byrow = TRUE))
 plot(1, main = 1)
