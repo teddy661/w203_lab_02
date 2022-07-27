@@ -177,7 +177,7 @@ complete_histograms <- ggarrange(
 complete_histograms
 ```
 
-```{r box plots for vehicle class, echo=FALSE}
+```{r box plots for vehicle region, echo=FALSE}
 vehicle_tier_boxplot <- ggplot(car_sales, aes(x = region, y = price_000)) +
   labs(title = "Price by Region", x = "Region", y = "Price in Thousands") +
   geom_boxplot(
@@ -187,7 +187,16 @@ vehicle_tier_boxplot <- ggplot(car_sales, aes(x = region, y = price_000)) +
   )
 vehicle_tier_boxplot + stat_summary(fun = mean, geom = "point", shape = 23, size = 4)
 ```
-
+```{r box plots for vehicle region, echo=FALSE}
+vehicle_tier_boxplot <- ggplot(car_sales, aes(x = region, y = curb_weight)) +
+  labs(title = "Curb Weight by Region", x = "Region", y = "Thousands of Lbs") +
+  geom_boxplot(
+    outlier.colour = "red", outlier.shape = 8,
+    outlier.size = 4,
+    notch = FALSE,
+  )
+vehicle_tier_boxplot + stat_summary(fun = mean, geom = "point", shape = 23, size = 4)
+```
 
 ```{r xy plots for independent dependent variable combinations, message=FALSE, warning=FALSE, include=FALSE}
 ln_price_vs_ln_power_perf <- ggplot(car_sales, aes(x = ln_power_perf, y = ln_price_000)) +
