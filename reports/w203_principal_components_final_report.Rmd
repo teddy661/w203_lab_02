@@ -1,0 +1,157 @@
+---
+title: "Estimating vehicle MSRP from Power Performance Ratio"
+author: 'The Principal Components Ed Brown; Daphne Lin; Lihn Tran; Lisa Wu'
+output:
+  pdf_document
+header-includes:
+ \usepackage{wrapfig}
+ \usepackage{float}
+ \floatplacement{figure}{H}
+---
+
+```{r load packages and set options, include=FALSE}
+library(tidyverse)
+library(stargazer)
+library(sandwich)
+library(lmtest)
+library(Hmisc)
+library(funModeling)
+library(olsrr)
+library(ggpubr)
+library(moments)
+
+theme_set(theme_bw())
+```
+
+```{r read input file, include=FALSE}
+car_sales <- read_csv("../datasets/Car_sales.csv", show_col_types = FALSE)
+```
+
+```{r relabel column headers, include=FALSE}
+colnames(car_sales)[1] <- "manufacturer"
+colnames(car_sales)[2] <- "model"
+colnames(car_sales)[3] <- "sales_000"
+colnames(car_sales)[4] <- "resale_value"
+colnames(car_sales)[5] <- "vehicle_type"
+colnames(car_sales)[6] <- "price_000"
+colnames(car_sales)[7] <- "engine_size"
+colnames(car_sales)[8] <- "horsepower"
+colnames(car_sales)[9] <- "wheelbase"
+colnames(car_sales)[10] <- "width"
+colnames(car_sales)[11] <- "length"
+colnames(car_sales)[12] <- "curb_weight"
+colnames(car_sales)[13] <- "fuel_capacity"
+colnames(car_sales)[14] <- "fuel_efficiency"
+colnames(car_sales)[15] <- "latest_launch"
+colnames(car_sales)[16] <- "power_perf"
+colnames(car_sales)[17] <- "vehicle_tier"
+```
+
+
+
+```{r convert columns to appropriate types, include=FALSE}
+# Convert to Factors
+car_sales$manufacturer <- as.factor(car_sales$manufacturer)
+car_sales$model <- as.factor(car_sales$model)
+car_sales$vehicle_type <- as.factor(car_sales$vehicle_type)
+car_sales$region <- as.factor(car_sales$region)
+# Vehicle Tier L = Luxury; S = Standard; E = Economy
+# Convert to Factor and Re-Level to Luxury as Base Model
+car_sales[, "vehicle_tier"] <- relevel(as.factor(car_sales$vehicle_tier),
+  ref = "L"
+)
+car_sales[, "region"] <- relevel(as.factor(car_sales$region),
+  ref = "USA"
+)
+# Convert Dates
+car_sales$latest_launch <- as.POSIXct(car_sales$latest_launch,
+  format = "%m/%d/%Y"
+)
+```
+
+```{r transform data and add our required study parameters, include=FALSE}
+car_sales <- car_sales %>%
+  mutate(
+    ln_price_000 = log(price_000),
+    ln_width = log(width),
+    ln_curb_weight = log(curb_weight),
+    ln_fuel_capacity = log(fuel_capacity),
+    ln_fuel_efficiency = log(fuel_efficiency),
+    ln_power_perf = log(power_perf),
+    vehicle_range = fuel_capacity * fuel_efficiency,
+    ln_range = log(vehicle_range),
+    vehicle_size = length * width,
+    ln_vehicle_size = log(vehicle_size),
+    sqrt_vehicle_size = ln_vehicle_size^0.5,
+    density = curb_weight / vehicle_size,
+    ln_density = log(density),
+    power_weight_ratio = horsepower / curb_weight,
+    ln_power_weight_ratio = log(power_weight_ratio),
+    ln_horsepower = log(horsepower),
+    hp_per_liter = horsepower / engine_size,
+    ln_hp_per_liter = log(hp_per_liter),
+    days_since_refresh = as.numeric(difftime(as.POSIXct(Sys.Date(), tz = "UTC"),
+      latest_launch,
+      units = "days"
+    ))
+  )
+car_sales$refresh_normalized <-
+  car_sales$days_since_refresh / max(car_sales$days_since_refresh)
+```
+
+
+## Introduction 
+With technology advancements, automobile manufacturers are keen to introduce new vehicle models that provide better performance and driving experience to increase brand loyalty (retain customers) as well as attract new customers and increase their market share.  Price is a key consideration to consumers when presented with factors to switch brands, as a consumer reports survey\footnote{https://www.consumerreports.org/cro/news/2010/05/survey-car-buyers-most-influenced-by-quality-and-fuel-economy/index.htm} in 2010 identified that price was an important factor to 67% of consumers surveyed.  
+
+While car manufacturers may get expert opinions on pricing a new car model, they can also benefit from data-based insights to reduce the uncertainty in their pricing strategy.  Principal Components Consulting Group has been contracted by a big three global automotive company to evaluate how key features (specially, power performance) in new automobile design will influence their car pricing strategy.   We use the Manufacturer’s Suggested Retail Price (MSRP) to represent the car price. Once a target MSRP is estimated from power performance ratio, the manufacturer may then refine vehicle trim and model options to achieve a target profit margin for their new car product. 
+
+We will focus our study to explain the car price in terms of engine power performance ratio, using observations of 157 vehicle models from many automobile manufacturers across Europe, US and Asia.  We apply a set of regression models to estimate the car price in relation to engine performance ratio and perform statistical analysis to evaluate the uncertainty of our estimates.
+
+## Data and Methodology
+
+```{r filter missing data points, include=FALSE}
+# Remove one row "Town & Country" has no values
+car_sales <- car_sales[!(car_sales$model == "Town & Country"), ]
+
+# Remove all rows with missing power_performance information (2 rows)
+car_sales <- car_sales[!is.na(car_sales$power_perf), ]
+car_sales <- car_sales[!is.na(car_sales$curb_weight), ]
+```
+
+This is a car sales data set which is taken from Analytixlabs by way of Kaggle[1]. The data set was assembled in 2013 and contains characteristics of 157 different vehicle models from thirty (30) different vehicle manufacturers. This dataset represents the major global vehicle manufacturers across the three continents (Europe, US and Asia), and does not include some regional manufacturers that had a major presence in their local markets.
+
+We developed the regression model and created the report creation using the entire 157 data set. An alternative approach was to use a 30% training and 70% testing data split. However, given our sample size, the alternative approach would result in a too small training dataset and may not produce consistent model estimates. Therefore, we apply the EDA work and a set of regression models to the entire dataset.
+
+Each row of data represents a single vehicle model. We encountered three samples from the dataset which were missing the values required for model development and these were dropped from the sample.
+
+Our outcome variable is price and our measured variable is the power performance ratio. It is important to understand what power performance ratio represents and why it has explanatory power of price. Power performance ratio is a continuous variable based on an engineering equation which represents the peak horsepower of an engine multiplied by the angular velocity or RPM of the engine at peak horsepower. This variable allows us to explain price in three ways. First, vehicles with high horsepower command a higher price point due to the amount of engineering invested in engine development. Second, these high horsepower engines are predominantly found in luxury and sport vehicles. Third, higher angular velocities (RPM) in power performance ratio are also indicative of luxury or sports vehicles due to the engineering investment both in terms of design and materials to develop high RPM engines.  
+
+With the above causal relationship in mind, we then conducted exploratory analysis to understand the distribution of our outcome variable (price) and the measured variable (power performance ratio), as well as the correlation between two variables.  The histogram of price showed that it was right skewed; therefore, we decided to transform price by utilizing the natural log of price to bring it close to a normal distribution and correct the linearity issue for model development. Similarly, right skewness was observed in our primary explanatory variable (power performance ratio) and again we used the natural log to transform this variable into a more normal distribution.  We also performed data transformation of other variables as needed to make sure the distribution shape is not too skewed.
+
+We also analyzed the correlation between two variables (in natural log form) and observed that they are highly correlated and linear.  In addition to the power performance ratio, we are also interested in whether this relationship shows differences by region (the headquarter location of the manufacturer) and observed some differences, as expected.
+
+```{r figure_1, echo=FALSE, message=FALSE, fig.show="hold", out.width="50%", fig.cap = "Car Price vs. Power Performance With and Without Manufacturer Region", fig.height = 3, fig.width = 5}
+
+ggplot(car_sales, aes(x = ln_power_perf, y = ln_price_000)) +
+  geom_point() +
+  geom_smooth(method = lm, formula = y ~ x) +
+  labs(x = "Power Performance (in natural log)", y = "Price in Thousands (in natural log)") +
+  theme(legend.title = element_blank())
+
+ggplot(car_sales, aes(x = ln_power_perf, y = ln_price_000, color = region)) +
+  geom_point() +
+  geom_smooth(method = lm, formula = y ~ x) +
+  labs(x = "Power Performance (in natural log)", y = "Price in Thousands (in natural log)") +
+  scale_color_manual(
+    name = "Manufacturer Region",
+    labels = c("US", "Asia", "Europe"),
+    values = c("red", "green", "blue")
+  ) +
+  theme(legend.title = element_blank(), legend.position = c(0.9, 0.3))
+```
+
+We then fit a regression of the form:
+$$\widehat{\ln(Price)}=\beta_0 + \beta_1 \cdot \ln(PowerPerformaceRatio) + \mathbf{Z\gamma}$$
+$\beta_1$ represents the amount the price of the vehicle which will be adjusted up or down based on the power performance ratio of the engine designed for the vehicle.
+
+
