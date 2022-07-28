@@ -118,7 +118,7 @@ car_sales <- car_sales[!is.na(car_sales$power_perf), ]
 car_sales <- car_sales[!is.na(car_sales$curb_weight), ]
 ```
 
-This is a car sales data set which is taken from Analytixlabs by way of Kaggle[1]. The data set was assembled in 2013 and contains characteristics of 157 different vehicle models from thirty (30) different vehicle manufacturers. This dataset represents the major global vehicle manufacturers across the three continents (Europe, US and Asia), and does not include some regional manufacturers that had a major presence in their local markets.
+This is a car sales data set which is taken from Analytixlabs by way of Kaggle\footnote{https://www.kaggle.com/datasets/gagandeep16/carsales}. The data set was assembled in 2013 and contains characteristics of 157 different vehicle models from thirty (30) different vehicle manufacturers. This dataset represents the major global vehicle manufacturers across the three continents (Europe, US and Asia), and does not include some regional manufacturers that had a major presence in their local markets.
 
 We developed the regression model and created the report creation using the entire 157 data set. An alternative approach was to use a 30% training and 70% testing data split. However, given our sample size, the alternative approach would result in a too small training dataset and may not produce consistent model estimates. Therefore, we apply the EDA work and a set of regression models to the entire dataset.
 
