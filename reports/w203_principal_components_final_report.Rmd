@@ -186,8 +186,8 @@ stargazer(car_price_base, car_base_size, car_size_curb,
   dep.var.caption = "Output Variable: Price in Thousands of Dollars (in natural log)",
   dep.var.labels = "",
   star.cutoffs = c(0.05, 0.01, 0.001),
-  covariate.labels = c("Power Performance Ratio (in natural log)", "Asian Manufacturer", "European Manufacturer", "Weight", "Constant"),
-  notes = "\\parbox[t]{.55\\textwidth}{$HC_1$ robust standard errors in parentheses. American Vehicles are the reference level}", notes.align = "l",
+  covariate.labels = c("Power Performance Ratio", "Asian Manufacturer", "European Manufacturer", "Weight", "Constant"),
+  notes = "\\parbox[t]{.55\\textwidth}{$HC_1$ robust standard errors in parentheses. American Vehicles are the reference level. Power Performance Ratio is natural log.}", notes.align = "l",
   column.sep.width = "-8pt"
 )
 ```
@@ -197,3 +197,15 @@ stargazer(car_price_base, car_base_size, car_size_curb,
   lmtest::bptest(car_base_size)
   lmtest::bptest(car_size_curb)
 ```
+##Limitations
+Independent and identically distributed (i.i.d) data is an essential assumption for our linear regression model to produce consistent estimates. Because there are different brands and models made by the same manufacturer based on market segmentation, there is a possibility of manufacturer and geographical clustering. Competition could also affect the outcome of the model as companies may adjust their price in response to competitors’ prices.  We partially account for geographical clustering by creating a dummy variable to indicate region. However, our model could not account for brand clustering and strategic interaction (competition among manufacturers).
+
+Consistent linear regression estimates also require a normal distribution of residuals, which our diagnostic plots (residuals vs. fitted values) showed. There was no visual evidence of heavy tailed distributions in any diagnostic plot. Variables are automatically dropped to avoid perfect collinearity and the Variance Inflation Factor(VIF) test does not detect multicollinearity as well.
+
+In terms of structural limitations, several omitted variables may bias our model estimates. Two examples of omitted variables in our mode include fuel type and brand effect. Vehicle models require different fuel types (e.g., regular, mid, premium). Engines that require premium gas could have a positive effect on the power performance, compared to those that only require regular gas. The main effect is likely that the coefficient of power performance ratio is inflated and biased away from zero, making our hypothesis test overconfident. 
+
+Another omitted variable is the brand effect. For example, prestigious brands have higher perceived value and have a positive effect on price, while lesser known brands tend to demand lower prices. More prestigious brands such as BMW, may have more R&D capabilities and incentives to enhance engine technology, which has a positive effect on power performance, which could inflate the power performance coefficient and result in an omitted variable bias away from zero. This may also make our hypothesis test overconfident.
+
+Another limitation of our dataset is the timeframe in which the data was collected. The dataset only includes models launched in 2011-2012. With the speed of innovation and technology integration into cars, our regression model could be outdated as it does not consider new technology and features that could affect price.  
+
+## Conclusion
