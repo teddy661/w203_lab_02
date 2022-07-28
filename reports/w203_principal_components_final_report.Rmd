@@ -192,7 +192,7 @@ stargazer(car_price_base, car_base_size, car_size_curb,
   dep.var.caption = "Output Variable: Price in Thousands of Dollars (in natural log)",
   dep.var.labels = "",
   star.cutoffs = c(0.05, 0.01, 0.001),
-  covariate.labels = c('Power Performance Ratio\\\\(in natural log)', "Asian Manufacturer", "European Manufacturer", "Weight", "Constant"),
+  covariate.labels = c("Power Performance Ratio\\\\(in natural log)", "Asian Manufacturer", "European Manufacturer", "Weight", "Constant"),
   notes = "\\parbox[t]{.55\\textwidth}{$HC_1$ robust standard errors in parentheses. American Vehicles are the reference level.}", notes.align = "l",
   column.sep.width = "-8pt"
 )
