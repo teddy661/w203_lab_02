@@ -153,7 +153,6 @@ We then fit a regression of the form:
 $$\widehat{\ln(Price)}=\beta_0 + \beta_1 \cdot \ln(PowerPerformaceRatio) + \mathbf{Z\gamma}$$
 $\beta_1$ represents the amount the price of the vehicle which will be adjusted up or down based on the power performance ratio of the engine designed for the vehicle. Since we use log transformation of the variables, this means increase power performance ratio by 1% will increase price by$\beta_1$%. $\mathbf{Z}$ is a row vector of additional covariates (for example, region and car weight), and $\mathbf{\gamma}$ is a column vector of coefficients.
 
-\newpage
 ## Results
 
 Table 1 below shows the results of three representative regressions.  For all three models, the coefficient on power performance ratio was highly statistically significant (with p-value less than 0.001).  The coefficient estimate ranges from 1.152 to 1.318.  This means that for a 1% change in power performance ratio, we estimate approximately 1.152% -1.318% change in price in the same direction.  For example, in Model 1, a hypothetical $30,000 car will increase price by approximately $395 if the power performance ratio increases slightly from 60 to 60.6 (1% increase).  The estimated price increase would be ~$378 by Model 2, and ~$345 by Model 3.
