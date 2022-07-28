@@ -197,7 +197,7 @@ stargazer(car_price_base, car_base_size, car_size_curb,
   lmtest::bptest(car_base_size)
   lmtest::bptest(car_size_curb)
 ```
-##Limitations
+## Limitations
 Independent and identically distributed (i.i.d) data is an essential assumption for our linear regression model to produce consistent estimates. Because there are different brands and models made by the same manufacturer based on market segmentation, there is a possibility of manufacturer and geographical clustering. Competition could also affect the outcome of the model as companies may adjust their price in response to competitors’ prices.  We partially account for geographical clustering by creating a dummy variable to indicate region. However, our model could not account for brand clustering and strategic interaction (competition among manufacturers).
 
 Consistent linear regression estimates also require a normal distribution of residuals, which our diagnostic plots (residuals vs. fitted values) showed. There was no visual evidence of heavy tailed distributions in any diagnostic plot. Variables are automatically dropped to avoid perfect collinearity and the Variance Inflation Factor(VIF) test does not detect multicollinearity as well.
