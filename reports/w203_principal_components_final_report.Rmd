@@ -205,7 +205,7 @@ pearson_corr_power_perf <- cor.test(
   y = car_sales$ln_price_000, method = "pearson"
 )
 
-pearson_corr_power_perf   #correction 0.92, practical significance
+pearson_corr_power_perf # correction 0.92, practical significance
 ```
 
 
@@ -217,15 +217,15 @@ Consistent linear regression estimates also require a normal distribution of res
 In addition, since we ran the linear regression model on the entire dataset, instead of the 30% training and 70% test data split, we took a conservative approach to assess all five classical linear model (CLM) assumptions which include i.i.d, no perfect colinearity and normality of errors, as assessed above, as well as linear conditional expectation and homoskedastic conditional variance. We examined the residuals vs. fitted value scatterplot and noted the line (mean of errors) is generally close to zero, which meets the linear conditional expectation. The same scatterplot also shows relative constant variance of errors and meets the homoskedastic conditional variance assumptions. We confirmed homoskedasticity by performing the Breusch-Pagan test (p-value of 0.07959 which fails to reject the null hypothesis of homoskedasticity).
 
 ```{r  echo=FALSE, fig.show="hold", out.width="50%", include=FALSE}
-#evalue zero condition mean linearity
+# evaluate zero condition mean linearity
 plot_mean <- plot(car_price_base, which = 1)
-#evaluate normality of error terms
+# evaluate normality of error terms
 plot_mean <- plot(car_price_base, which = 2)
 ```
 ```{r Breusch-Pagan test to evaluate homoskedatic conditional variance, include =FALSE, message=FALSE, warning=FALSE}
-  lmtest::bptest(car_price_base)
-  lmtest::bptest(car_base_size)
-  lmtest::bptest(car_size_curb)
+lmtest::bptest(car_price_base)
+lmtest::bptest(car_base_size)
+lmtest::bptest(car_size_curb)
 ```
  
 
@@ -247,4 +247,3 @@ In future research, it may be valuable to include new car models and brands afte
 min(car_sales$power_perf) # 23.27627
 max(car_sales$power_perf) # 188.1443
 ```
-
