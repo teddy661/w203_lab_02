@@ -154,4 +154,46 @@ We then fit a regression of the form:
 $$\widehat{\ln(Price)}=\beta_0 + \beta_1 \cdot \ln(PowerPerformaceRatio) + \mathbf{Z\gamma}$$
 $\beta_1$ represents the amount the price of the vehicle which will be adjusted up or down based on the power performance ratio of the engine designed for the vehicle.
 
+\newpage
+## Results
 
+```{r fit models, include=FALSE}
+car_price_base <- car_sales %>% lm(ln_price_000 ~ ln_power_perf, data = .)
+car_price_base_se <- car_price_base %>%
+  vcovHC(type = "HC1") %>%
+  diag() %>%
+  sqrt()
+
+car_base_size <- car_sales %>% lm(ln_price_000 ~ ln_power_perf + region, data = .)
+car_base_size_se <- car_base_size %>%
+  vcovHC(type = "HC1") %>%
+  diag() %>%
+  sqrt()
+
+car_size_curb <- car_sales %>% lm(ln_price_000 ~ ln_power_perf + region + curb_weight, data = .)
+car_size_curb_se <- car_size_curb %>%
+  vcovHC(type = "HC1") %>%
+  diag() %>%
+  sqrt()
+```
+
+```{r final regression table, message=FALSE, echo=FALSE, results='asis', warning=FALSE}
+stargazer(car_price_base, car_base_size, car_size_curb,
+  type = "latex",
+  se = list(car_price_base_se, car_base_size_se, car_size_curb_se),
+  header = FALSE,
+  title = "Estimated Car Price Linear Regression Models",
+  dep.var.caption = "Output Variable: Price in Thousands of Dollars (in natural log)",
+  dep.var.labels = "",
+  star.cutoffs = c(0.05, 0.01, 0.001),
+  covariate.labels = c("Power Performance Ratio (in natural log)", "Asian Manufacturer", "European Manufacturer", "Weight", "Constant"),
+  notes = "\\parbox[t]{.55\\textwidth}{$HC_1$ robust standard errors in parentheses. American Vehicles are the reference level}", notes.align = "l",
+  column.sep.width = "-8pt"
+)
+```
+
+```{r Breusch-Pagan test, message=FALSE, warning=FALSE, include=FALSE}
+  lmtest::bptest(car_price_base)
+  lmtest::bptest(car_base_size)
+  lmtest::bptest(car_size_curb)
+```
