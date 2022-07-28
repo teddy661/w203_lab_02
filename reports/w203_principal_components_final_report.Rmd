@@ -1,8 +1,7 @@
 ---
 title: "Estimating vehicle MSRP from Power Performance Ratio"
 author: 'The Principal Components Ed Brown; Daphne Lin; Lihn Tran; Lisa Wu'
-output:
-  pdf_document
+output: pdf_document
 header-includes:
  \usepackage{wrapfig}
  \usepackage{float}
@@ -126,9 +125,9 @@ Each row of data represents a single vehicle model. We encountered three samples
 
 Our outcome variable is price and our measured variable is the power performance ratio. It is important to understand what power performance ratio represents and why it has explanatory power of price. Power performance ratio is a continuous variable based on an engineering equation which represents the peak horsepower of an engine multiplied by the angular velocity or RPM of the engine at peak horsepower. This variable allows us to explain price in three ways. First, vehicles with high horsepower command a higher price point due to the amount of engineering invested in engine development. Second, these high horsepower engines are predominantly found in luxury and sport vehicles. Third, higher angular velocities (RPM) in power performance ratio are also indicative of luxury or sports vehicles due to the engineering investment both in terms of design and materials to develop high RPM engines.  
 
-With the above causal relationship in mind, we then conducted exploratory analysis to understand the distribution of our outcome variable (price) and the measured variable (power performance ratio), as well as the correlation between two variables.  The histogram of price showed that it was right skewed; therefore, we decided to transform price by utilizing the natural log of price to bring it close to a normal distribution and correct the linearity issue for model development. Similarly, right skewness was observed in our primary explanatory variable (power performance ratio) and again we used the natural log to transform this variable into a more normal distribution.  We also performed data transformation of other variables as needed to make sure the distribution shape is not too skewed.
+With the above causal relationship theory, we then conducted exploratory analysis to understand the distribution of our outcome variable (price) and the measured variable (power performance ratio), as well as the correlation between two variables.  The histogram of price showed that it was right skewed; therefore, we decided to transform price by utilizing the natural log of price to bring it close to a normal distribution and correct the linearity issue for model development. Similarly, right skewness was observed in our primary explanatory variable (power performance ratio) and again we used the natural log to transform this variable into a more normal distribution.  We also performed data transformation of other variables as needed to make sure the distribution shape is not too skewed.
 
-We also analyzed the correlation between two variables (in natural log form) and observed that they are highly correlated and linear.  In addition to the power performance ratio, we are also interested in whether this relationship shows differences by region (the headquarter location of the manufacturer) and observed some differences, as expected.
+We also analyzed the correlation between two variables (in natural log form) and observed that they are highly correlated and linear. We expect that when power performance increases, car value increases and price increases. In addition to the power performance ratio, we are also interested in whether this relationship shows differences by region (the headquarter location of the manufacturer) and observed some differences, as expected.
 
 ```{r figure_1, echo=FALSE, message=FALSE, fig.show="hold", out.width="50%", fig.cap = "Car Price vs. Power Performance With and Without Manufacturer Region", fig.height = 3, fig.width = 5}
 
@@ -152,10 +151,18 @@ ggplot(car_sales, aes(x = ln_power_perf, y = ln_price_000, color = region)) +
 
 We then fit a regression of the form:
 $$\widehat{\ln(Price)}=\beta_0 + \beta_1 \cdot \ln(PowerPerformaceRatio) + \mathbf{Z\gamma}$$
-$\beta_1$ represents the amount the price of the vehicle which will be adjusted up or down based on the power performance ratio of the engine designed for the vehicle, $\mathbf{Z}$ is a row vector of additional covariates, and $\mathbf{\gamma}$ is a column vector of coefficients.
+$\beta_1$ represents the amount the price of the vehicle which will be adjusted up or down based on the power performance ratio of the engine designed for the vehicle. Since we use log transformation of the variables, this means increase power performance ratio by 1% will increase price by$\beta_1$%. $\mathbf{Z}$ is a row vector of additional covariates (for example, region and car weight), and $\mathbf{\gamma}$ is a column vector of coefficients.
 
 \newpage
 ## Results
+
+Table 1 below shows the results of three representative regressions.  For all three models, the coefficient on power performance ratio was highly statistically significant (with p-value less than 0.001).  The coefficient estimate ranges from 1.152 to 1.318.  This means that for a 1% change in power performance ratio, we estimate approximately 1.152% -1.318% change in price in the same direction.  For example, in Model 1, a hypothetical $30,000 car will increase price by approximately $395 if the power performance ratio increases slightly from 60 to 60.6 (1% increase).  The estimated price increase would be ~$378 by Model 2, and ~$345 by Model 3.
+
+Model 2 adds the Region variable and reflects US in the base model. Each of these regions will have different engineering practices which may be reflected both in engine quality and the price (premium or discount) that manufacturers believe they can set for MSRP. Manufacturers from Asia and Europe have a positive effect on car price, in comparison to US manufacturers, which could be due to higher perceived engineering quality and precision. The coefficient of the Region variable is statistically significant (with p-value less than 0.001). To provide some context, for a hypothetical $30K car, the presence of a Asian manufacturer has a positive effect of adding $1,980 (beta of 0.066 multiplied by $30K) to car price, holding all other variables constant.
+
+In Model 3, we want to consider the effect of vehicle physical features on MSRP, which we operationalize by using the curb_weight variable (representing the car/passenger capacity). curb weight had a positive correlation to MSRP indicating that the higher priced vehicles were larger than lower priced vehicles. The coefficient of the curb weight variable is statistically significant (with p-value less than 0.001).
+
+Across all models, R2 and adjusted R2 are very high (from 0.84 to 0.91) which show that our measured variable (power performance ratio) explains price very well.  In addition, we used Pearson correlation test to measure the practice significance which is 0.92, large practical significance as well.   
 
 ```{r fit models, include=FALSE}
 car_price_base <- car_sales %>% lm(ln_price_000 ~ ln_power_perf, data = .)
@@ -192,20 +199,53 @@ stargazer(car_price_base, car_base_size, car_size_curb,
 )
 ```
 
-```{r Breusch-Pagan test, message=FALSE, warning=FALSE, include=FALSE}
+
+```{r evaluate practical significance using Pearson test, include=FALSE}
+pearson_corr_power_perf <- cor.test(
+  x = car_sales$ln_power_perf,
+  y = car_sales$ln_price_000, method = "pearson"
+)
+
+pearson_corr_power_perf   #correction 0.92, practical significance
+```
+
+
+## Limitations
+Independent and identically distributed (i.i.d) data is an essential assumption for our linear regression model to produce consistent estimates. Because there are different brands and models made by the same manufacturer based on market segmentation, there is a possibility of manufacturer and geographical clustering. Competition could also affect the outcome of the model as companies may adjust their price in response to competitors’ prices.  We partially account for geographical clustering by creating a dummy variable to indicate region. However, our model could not account for brand clustering and strategic interaction (competition among manufacturers). The i.i.d. limitations may cause biases and inconsistency in our model estimates. 
+
+Consistent linear regression estimates also require a normal distribution of residuals, which our diagnostic Normal Q-Q plot shows that there was no visual evidence of heavy tailed distributions in any diagnostic plot. Variables are automatically dropped to avoid perfect collinearity and the Variance Inflation Factor(VIF) test does not detect multicollinearity as well.
+
+In addition, since we ran the linear regression model on the entire dataset, instead of the 30% training and 70% test data split, we took a conservative approach to assess all five classical linear model (CLM) assumptions which include i.i.d, no perfect colinearity and normality of errors, as assessed above, as well as linear conditional expectation and homoskedastic conditional variance. We examined the residuals vs. fitted value scatterplot and noted the line (mean of errors) is generally close to zero, which meets the linear conditional expectation. The same scatterplot also shows relative constant variance of errors and meets the homoskedastic conditional variance assumptions. We confirmed homoskedasticity by performing the Breusch-Pagan test (p-value of 0.07959 which fails to reject the null hypothesis of homoskedasticity).
+
+```{r  echo=FALSE, fig.show="hold", out.width="50%", include=FALSE}
+#evalue zero condition mean linearity
+plot_mean <- plot(car_price_base, which = 1)
+#evaluate normality of error terms
+plot_mean <- plot(car_price_base, which = 2)
+```
+```{r Breusch-Pagan test to evaluate homoskedatic conditional variance, include =FALSE, message=FALSE, warning=FALSE}
   lmtest::bptest(car_price_base)
   lmtest::bptest(car_base_size)
   lmtest::bptest(car_size_curb)
 ```
-## Limitations
-Independent and identically distributed (i.i.d) data is an essential assumption for our linear regression model to produce consistent estimates. Because there are different brands and models made by the same manufacturer based on market segmentation, there is a possibility of manufacturer and geographical clustering. Competition could also affect the outcome of the model as companies may adjust their price in response to competitors’ prices.  We partially account for geographical clustering by creating a dummy variable to indicate region. However, our model could not account for brand clustering and strategic interaction (competition among manufacturers).
-
-Consistent linear regression estimates also require a normal distribution of residuals, which our diagnostic plots (residuals vs. fitted values) showed. There was no visual evidence of heavy tailed distributions in any diagnostic plot. Variables are automatically dropped to avoid perfect collinearity and the Variance Inflation Factor(VIF) test does not detect multicollinearity as well.
+ 
 
 In terms of structural limitations, several omitted variables may bias our model estimates. Two examples of omitted variables in our mode include fuel type and brand effect. Vehicle models require different fuel types (e.g., regular, mid, premium). Engines that require premium gas could have a positive effect on the power performance, compared to those that only require regular gas. The main effect is likely that the coefficient of power performance ratio is inflated and biased away from zero, making our hypothesis test overconfident. 
 
 Another omitted variable is the brand effect. For example, prestigious brands have higher perceived value and have a positive effect on price, while lesser known brands tend to demand lower prices. More prestigious brands such as BMW, may have more R&D capabilities and incentives to enhance engine technology, which has a positive effect on power performance, which could inflate the power performance coefficient and result in an omitted variable bias away from zero. This may also make our hypothesis test overconfident.
 
+We evaluated reverse causality of our variables and don't expect price will reversely impact engine power performance, as the sequence goes from the engineering design process to the pricing strategy, and not the other way around.  We also don't expect any outcome variables on the right hand side in our models.
+
 Another limitation of our dataset is the timeframe in which the data was collected. The dataset only includes models launched in 2011-2012. With the speed of innovation and technology integration into cars, our regression model could be outdated as it does not consider new technology and features that could affect price.  
 
 ## Conclusion
+
+This study estimated car price in terms of power performance ratio. For a small 1% change in power performance ratio, a hypothetical $30,000 car will increase price by approximately $345-$395. The power performance ratio in our data ranges from 23 to 188, so for a large percentage increase, we could expect a meaningful increase in car price. For car manufacturers who intent to invest in engineering R&D to improve power performance, this study provides the estimate of price return that they can expect.
+
+In future research, it may be valuable to include new car models and brands after 2012 to incorporate the more recent technology advancements in price effect estimation. For manufacturers who are interested in competing in certain regions, it will be important to identify new datasets that include regional manufacturers (not present in this dataset) to evaluate power performance effect on price.
+
+```{r include=FALSE}
+min(car_sales$power_perf) # 23.27627
+max(car_sales$power_perf) # 188.1443
+```
+
