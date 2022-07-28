@@ -152,7 +152,7 @@ ggplot(car_sales, aes(x = ln_power_perf, y = ln_price_000, color = region)) +
 
 We then fit a regression of the form:
 $$\widehat{\ln(Price)}=\beta_0 + \beta_1 \cdot \ln(PowerPerformaceRatio) + \mathbf{Z\gamma}$$
-$\beta_1$ represents the amount the price of the vehicle which will be adjusted up or down based on the power performance ratio of the engine designed for the vehicle.
+$\beta_1$ represents the amount the price of the vehicle which will be adjusted up or down based on the power performance ratio of the engine designed for the vehicle, $\mathbf{Z}$ is a row vector of additional covariates, and $\mathbf{\gamma}$ is a column vector of coefficients.
 
 \newpage
 ## Results
