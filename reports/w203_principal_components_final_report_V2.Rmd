@@ -47,6 +47,7 @@ colnames(car_sales)[17] <- "vehicle_tier"
 ```
 
 
+
 ```{r convert columns to appropriate types, include=FALSE}
 # Convert to Factors
 car_sales$manufacturer <- as.factor(car_sales$manufacturer)
@@ -126,7 +127,7 @@ We will focus our study to explain the car price in terms of engine power perfor
 # Remove one row "Town & Country" has no values
 car_sales <- car_sales[!(car_sales$model == "Town & Country"), ]
 
-# Remove all rows with missing power_performance information (2 rows)
+# Remove all rows with missing power_performance and curb_weight information (2 rows)
 car_sales <- car_sales[!is.na(car_sales$power_perf), ]
 car_sales <- car_sales[!is.na(car_sales$curb_weight), ]
 ```
@@ -169,7 +170,7 @@ $\beta_1$ represents the amount the price of the vehicle which will be adjusted 
 
 Table 1 below shows the results of three representative regressions.  For all three models, the coefficient on power performance ratio was highly statistically significant (with p-value less than 0.001). The coefficient estimate ranges from 1.152 to 1.318.  This means a 1% change in power performance ratio will result in approximately 1.152% -1.318% change in price in the same direction. For example, in Model 1, a hypothetical $30,000 car will increase price by approximately $395 if the power performance ratio increases slightly from 60 to 60.6 (1% increase). The estimated price increase would be ~$378 by Model 2, and ~$345 by Model 3.
 
-Model 2 adds the Region variable and reflects US in the base model. Each region has have different engineering practices which may be reflected both in engine quality and the price (premium or discount) that manufacturers believe they can set for MSRP. Manufacturers from Asia and Europe have a positive effect on car price, in comparison to US manufacturers, which could be due to higher perceived engineering quality and precision. The coefficient of the Region variable is statistically significant (with p-value less than 0.001). To provide some context, for a hypothetical $30K car, Asian manufacturers have a positive effect on price by adding $1,980 (beta of 0.066 multiplied by $30K) to price, holding all other variables constant.
+Model 2 adds the Region variable and reflects US in the base model. Each region has different engineering practices which may be reflected both in engine quality and the price (premium or discount) that manufacturers believe they can set for MSRP. Manufacturers from Asia and Europe have a positive effect on car price, in comparison to US manufacturers, which could be due to higher perceived engineering quality and precision. The coefficient of the Region variable is statistically significant (with p-value less than 0.001). To provide some context, for a hypothetical $30K car, Asian manufacturers have a positive effect on price by adding $1,980 (beta of 0.066 multiplied by $30K) to price, holding all other variables constant.
 
 In Model 3, we want to consider the effect of vehicle physical features on MSRP, which we operationalize by using the curb_weight variable (representing the car/passenger capacity). curb weight had a positive correlation to MSRP indicating that the higher priced vehicles were larger than lower priced vehicles. The coefficient of the curb weight variable is statistically significant (with p-value less than 0.001).
 
@@ -233,7 +234,7 @@ plot_mean <- plot(car_price_base, which = 1)
 # evaluate normality of error terms
 plot_mean <- plot(car_price_base, which = 2)
 ```
-```{r Breusch-Pagan test to evaluate homoskedatic conditional variance, include =FALSE, message=FALSE, warning=FALSE}
+```{r Breusch-Pagan test to evaluate homoskedatic conditional variance, include=FALSE, message=FALSE, warning=FALSE}
 lmtest::bptest(car_price_base)
 lmtest::bptest(car_base_size)
 lmtest::bptest(car_size_curb)
