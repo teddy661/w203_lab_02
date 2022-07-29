@@ -112,7 +112,7 @@ We will focus our study to explain the car price in terms of engine power perfor
 # Remove one row "Town & Country" has no values
 car_sales <- car_sales[!(car_sales$model == "Town & Country"), ]
 
-# Remove all rows with missing power_performance information (2 rows)
+# Remove all rows with missing power_performance and curb_weight information (2 rows)
 car_sales <- car_sales[!is.na(car_sales$power_perf), ]
 car_sales <- car_sales[!is.na(car_sales$curb_weight), ]
 ```
