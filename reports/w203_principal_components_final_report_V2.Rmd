@@ -113,6 +113,25 @@ car_sales[, "cat_power_perf"] <- relevel(as.factor(car_sales$cat_power_perf),
 )
 ```
 
+```{r histograms of key variables, include=FALSE}
+hist_price <- ggplot(car_sales, aes(x = price_000)) +  geom_histogram(bins = 60)
+hist_ln_price <- ggplot(car_sales, aes(x = ln_price_000)) +  geom_histogram(bins = 60)
+
+hist_power_perf <- ggplot(car_sales, aes(x = power_perf)) +  geom_histogram(bins = 60)
+hist_ln_power_perf <- ggplot(car_sales, aes(x = ln_power_perf)) +  geom_histogram(bins = 60)
+
+hist_curb_weight <- ggplot(car_sales, aes(x = curb_weight)) + geom_histogram(bins = 60)
+hist_ln_curb_weight <- ggplot(car_sales, aes(x = ln_curb_weight)) +  geom_histogram(bins = 60)
+```
+
+
+```{r display histograms, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold", out.width="50%", include=FALSE}
+hist(car_sales$price_000, breaks = 30, xlab = "Price in Thousands", main = "Histogram of Price in $K")
+hist(car_sales$ln_price_000, breaks = 30, xlab = "Price in Thousands (natural log)", main = "Histogram of Price in $K (natual log)")
+hist(car_sales$power_perf, breaks = 30, xlab = "Power Performance Ratio", main = "Histogram of Power Performance Ratio")
+hist(car_sales$ln_power_perf, breaks = 30, xlab = "Power Performance Ratio (natural log)", main = "Histogram of Power Performance Ratio (natual log)")
+```
+
 
 ## Introduction 
 With technology advancements, automobile manufacturers are fearful of being behind the curve and keen to invest in technology research and development (R&D) initiatives, to introduce vehicle models that provide better performance and driving experience to increase brand loyalty and attract new customers. Technology R&D spent is a key part of the total R&D cost for the automobile industry ($76 billions based on the 2000 McKinsey report\footnote{https://www.mckinsey.com/business-functions/strategy-and-corporate-finance/our-insights/building-an-r-and-d-strategy-for-modern-times}). It is critical for manufacturers to gauge how these performance enhancements can generate the economic value and influence the vehicle price that consumers are willing to pay. Price is a key consideration to consumers when presented with factors to switch brands, as a consumer reports survey\footnote{https://www.consumerreports.org/cro/news/2010/05/survey-car-buyers-most-influenced-by-quality-and-fuel-economy/index.htm} in 2010 identified that price was an important factor to 67% of consumers surveyed. Therefore, pricing strategy is a key factor to the marketing and financial success of launching vehicle models.  
@@ -170,7 +189,7 @@ $\beta_1$ represents the amount the price of the vehicle which will be adjusted 
 
 Table 1 below shows the results of three representative regressions.  For all three models, the coefficient on power performance ratio was highly statistically significant (with p-value less than 0.001). The coefficient estimate ranges from 1.152 to 1.318.  This means a 1% change in power performance ratio will result in approximately 1.152% -1.318% change in price in the same direction. For example, in Model 1, a hypothetical $30,000 car will increase price by approximately $395 if the power performance ratio increases slightly from 60 to 60.6 (1% increase). The estimated price increase would be ~$378 by Model 2, and ~$345 by Model 3.
 
-Model 2 adds the Region variable and reflects US in the base model. Each region has different engineering practices which may be reflected both in engine quality and the price (premium or discount) that manufacturers believe they can set for MSRP. Manufacturers from Asia and Europe have a positive effect on car price, in comparison to US manufacturers, which could be due to higher perceived engineering quality and precision. The coefficient of the Region variable is statistically significant (with p-value less than 0.001). To provide some context, for a hypothetical $30K car, Asian manufacturers have a positive effect on price by adding $1,980 (beta of 0.066 multiplied by $30K) to price, holding all other variables constant.
+Model 2 adds the Region variable and reflects US in the base model. Each region has different engineering practices which may be reflected both in engine quality and the price (premium or discount) that manufacturers believe they can set for MSRP. Manufacturers from Asia and Europe have a positive effect on car price, in comparison to US manufacturers, which could be due to higher perceived engineering quality and precision. The coefficient of the Region variable is statistically significant (with p-value less than 0.05). To provide some context, for a hypothetical $30K car, Asian manufacturers have a positive effect on price by adding $1,980 (beta of 0.066 multiplied by $30K) to price, holding all other variables constant.
 
 In Model 3, we want to consider the effect of vehicle physical features on MSRP, which we operationalize by using the curb_weight variable (representing the car/passenger capacity). curb weight had a positive correlation to MSRP indicating that the higher priced vehicles were larger than lower priced vehicles. The coefficient of the curb weight variable is statistically significant (with p-value less than 0.001).
 
@@ -209,6 +228,22 @@ stargazer(car_price_base, car_base_size, car_size_curb,
   notes = "\\parbox[t]{.55\\textwidth}{$HC_1$ robust standard errors in parentheses. American Vehicles are the reference level.}", notes.align = "l",
   column.sep.width = "-8pt"
 )
+```
+```{r homoskedastic conditional variance testing using VIF, echo=FALSE, include=FALSE}
+vif_2 = ols_vif_tol(car_base_size)
+vif_3 = ols_vif_tol(car_size_curb)
+stargazer(vif_2, vif_3,
+  type = "text",
+  header = FALSE,
+  title = "Variance Inflation Factor (VIF) Testing",
+  dep.var.caption = "VIF",
+  dep.var.labels = "",
+  star.cutoffs = c(0.05, 0.01, 0.001),
+  column.sep.width = "-8pt"
+)
+
+vif_2
+vif_3
 ```
 
 
