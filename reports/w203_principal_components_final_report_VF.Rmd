@@ -23,10 +23,17 @@ theme_set(theme_bw())
 ```
 
 ```{r read input file, include=FALSE}
+#
+# Read input file from .csv located in data. Relative path to project file
+# which was not submitted with this .Rmd
+#
 car_sales <- read_csv("../datasets/Car_sales.csv", show_col_types = FALSE)
 ```
 
 ```{r relabel column headers, include=FALSE}
+#
+# Relabel column headers to values to be used later
+#
 colnames(car_sales)[1] <- "manufacturer"
 colnames(car_sales)[2] <- "model"
 colnames(car_sales)[3] <- "sales_000"
@@ -49,7 +56,10 @@ colnames(car_sales)[17] <- "vehicle_tier"
 
 
 ```{r convert columns to appropriate types, include=FALSE}
-# Convert to Factors
+#
+# Convert columns to Factors for use as categorical varaiables in 
+# linear regression
+#
 car_sales$manufacturer <- as.factor(car_sales$manufacturer)
 car_sales$model <- as.factor(car_sales$model)
 car_sales$vehicle_type <- as.factor(car_sales$vehicle_type)
@@ -60,16 +70,22 @@ car_sales[, "region"] <- relevel(as.factor(car_sales$region),
 )
 # Vehicle Tier L = Luxury; S = Standard; E = Economy
 # Convert to Factor and Re-Level to Luxury as Base Model
+# this value isn't used in the final model. 
 car_sales[, "vehicle_tier"] <- relevel(as.factor(car_sales$vehicle_tier),
   ref = "L"
 )
-# Convert Dates
+#
+# Convert latest_launch to R date variables for examination
+#
 car_sales$latest_launch <- as.POSIXct(car_sales$latest_launch,
   format = "%m/%d/%Y"
 )
 ```
 
 ```{r transform data and add our required study parameters, include=FALSE}
+#
+# Create multiple columns from base data for EDA analysis
+#
 car_sales <- car_sales %>%
   mutate(
     ln_price_000 = log(price_000),
@@ -95,10 +111,16 @@ car_sales <- car_sales %>%
       units = "days"
     ))
   )
+
+#
+# Normalize days since last refresh to highest value.
+#
 car_sales$refresh_normalized <-
   car_sales$days_since_refresh / max(car_sales$days_since_refresh)
 
+#
 # add a dummy variable to categorize power performance into above and below the mean value
+#
 mean_ln_power_perf = mean(car_sales$ln_power_perf, na.rm = T)
 car_sales <- car_sales %>%
   mutate(cat_power_perf = case_when(
@@ -107,6 +129,7 @@ car_sales <- car_sales %>%
     TRUE ~ "Missing Value" # Missing Values
   ))
 ```
+
 ```{r relevel the power performance category for the base model, echo=FALSE, include=FALSE}
 car_sales[, "cat_power_perf"] <- relevel(as.factor(car_sales$cat_power_perf),
   ref = "below_avg"
@@ -114,6 +137,10 @@ car_sales[, "cat_power_perf"] <- relevel(as.factor(car_sales$cat_power_perf),
 ```
 
 ```{r histograms of key variables, include=FALSE}
+#
+# histograms for key variables from EDA work, not displayed in final report shows
+# right skewed data and log transform shifting to a normal distribution
+#
 hist_price <- ggplot(car_sales, aes(x = price_000)) +  geom_histogram(bins = 60)
 hist_ln_price <- ggplot(car_sales, aes(x = ln_price_000)) +  geom_histogram(bins = 60)
 
@@ -126,6 +153,9 @@ hist_ln_curb_weight <- ggplot(car_sales, aes(x = ln_curb_weight)) +  geom_histog
 
 
 ```{r display histograms, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold", out.width="50%", include=FALSE}
+#
+# Duplicate of above histograms. Omitted from final report 
+#
 hist(car_sales$price_000, breaks = 30, xlab = "Price in Thousands", main = "Histogram of Price in $K")
 hist(car_sales$ln_price_000, breaks = 30, xlab = "Price in Thousands (natural log)", main = "Histogram of Price in $K (natual log)")
 hist(car_sales$power_perf, breaks = 30, xlab = "Power Performance Ratio", main = "Histogram of Power Performance Ratio")
@@ -143,10 +173,14 @@ We will focus our study on explaining the car price in terms of engine power per
 ## Data and Methodology
 
 ```{r filter missing data points, include=FALSE}
+#
 # Remove one row "Town & Country" has no values
+#
 car_sales <- car_sales[!(car_sales$model == "Town & Country"), ]
 
+#
 # Remove all rows with missing power_performance and curb_weight information (2 rows)
+#
 car_sales <- car_sales[!is.na(car_sales$power_perf), ]
 car_sales <- car_sales[!is.na(car_sales$curb_weight), ]
 ```
@@ -166,6 +200,9 @@ We analyzed the correlation between two variables (in natural log form) and obse
 
 ```{r figure_1, echo=FALSE, , warning=FALSE, message=FALSE, fig.show="hold", out.width="50%", fig.cap = "Price vs. Power Performance Without (left) and With (right) the Region Effect", fig.height = 3, fig.width = 5}
 
+#
+# Output Variable vs Input Variable. Displayed in final report
+#
 ggplot(car_sales, aes(x = ln_power_perf, y = ln_price_000)) +
   geom_point() +
   geom_smooth(method = lm, formula = y ~ x) +
@@ -199,18 +236,27 @@ In Model 3, we considered the effect of vehicle physical features on MSRP and op
 Across all models, R2 and adjusted R2 are very high (from 0.84 to 0.91), which shows that our measured variable (power performance ratio) explains price very well. In addition, we used the Pearson correlation test to measure the practice significance, which is 0.92, indicating a large practical significance as well.    
 
 ```{r fit models, include=FALSE}
+#
+# Base Model using only the natural log of power performance ratio to predict MSRP
+#
 car_price_base <- car_sales %>% lm(ln_price_000 ~ ln_power_perf, data = .)
 car_price_base_se <- car_price_base %>%
   vcovHC(type = "HC1") %>%
   diag() %>%
   sqrt()
 
+#
+# Include Categorical Variable of Manufacturer Region e.g. USA, Asia, European
+#
 car_base_size <- car_sales %>% lm(ln_price_000 ~ ln_power_perf + region, data = .)
 car_base_size_se <- car_base_size %>%
   vcovHC(type = "HC1") %>%
   diag() %>%
   sqrt()
 
+#
+# Include vehicle curb weight in final model
+#
 car_size_curb <- car_sales %>% lm(ln_price_000 ~ ln_power_perf + region + curb_weight, data = .)
 car_size_curb_se <- car_size_curb %>%
   vcovHC(type = "HC1") %>%
@@ -219,6 +265,9 @@ car_size_curb_se <- car_size_curb %>%
 ```
 
 ```{r final regression table, message=FALSE, echo=FALSE, results='asis', warning=FALSE}
+#
+# Stargazer Table
+#
 stargazer(car_price_base, car_base_size, car_size_curb,
   type = "latex",
   se = list(car_price_base_se, car_base_size_se, car_size_curb_se),
@@ -233,6 +282,9 @@ stargazer(car_price_base, car_base_size, car_size_curb,
 )
 ```
 ```{r homoskedastic conditional variance testing using VIF, echo=FALSE, include=FALSE}
+#
+# Homoskedastic test and conditional variance testing, not displayed in final report
+#
 vif_2 = ols_vif_tol(car_base_size)
 vif_3 = ols_vif_tol(car_size_curb)
 stargazer(vif_2, vif_3,
@@ -251,6 +303,9 @@ vif_3
 
 
 ```{r evaluate practical significance using Pearson test, include=FALSE}
+#
+# Practical signficance testing
+#
 pearson_corr_power_perf <- cor.test(
   x = car_sales$ln_power_perf,
   y = car_sales$ln_price_000, method = "pearson"
