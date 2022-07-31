@@ -246,6 +246,10 @@ vif_2
 vif_3
 ```
 
+```{r linear conditional expectation and normal Q-Q plot, echo=FALSE}
+
+
+```
 
 ```{r evaluate practical significance using Pearson test, include=FALSE}
 pearson_corr_power_perf <- cor.test(
