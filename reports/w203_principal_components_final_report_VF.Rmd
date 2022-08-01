@@ -1,6 +1,6 @@
 ---
 title: "Estimating vehicle MSRP from Power Performance Ratio"
-author: 'The Principal Components Ed Brown; Daphne Lin; Lihn Tran; Lisa Wu'
+author: 'The Principal Components Ed Brown; Daphne Lin; Linh Tran; Lisa Wu'
 output: pdf_document
 header-includes:
  \usepackage{wrapfig}
