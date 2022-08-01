@@ -119,7 +119,7 @@ car_sales$refresh_normalized <-
   car_sales$days_since_refresh / max(car_sales$days_since_refresh)
 
 #
-# add a dummy variable to categorize power performance into above and below the mean value
+# During the EDA work, added a dummy variable to categorize power performance into above and below the mean value.  
 #
 mean_ln_power_perf = mean(car_sales$ln_power_perf, na.rm = T)
 car_sales <- car_sales %>%
@@ -139,7 +139,7 @@ car_sales[, "cat_power_perf"] <- relevel(as.factor(car_sales$cat_power_perf),
 ```{r histograms of key variables, include=FALSE}
 #
 # histograms for key variables from EDA work, not displayed in final report shows
-# right skewed data and log transform shifting to a normal distribution
+# right skewed data (price and power performance ratio) and log transform shifting to a normal distribution
 #
 hist_price <- ggplot(car_sales, aes(x = price_000)) +  geom_histogram(bins = 60)
 hist_ln_price <- ggplot(car_sales, aes(x = ln_price_000)) +  geom_histogram(bins = 60)
@@ -154,7 +154,7 @@ hist_ln_curb_weight <- ggplot(car_sales, aes(x = ln_curb_weight)) +  geom_histog
 
 ```{r display histograms, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold", out.width="50%", include=FALSE}
 #
-# Duplicate of above histograms. Omitted from final report 
+# Display similar histograms as above (in different format). Not included in the final report.  Included in the presentation slides (appendix section)
 #
 hist(car_sales$price_000, breaks = 30, xlab = "Price in Thousands", main = "Histogram of Price in $K")
 hist(car_sales$ln_price_000, breaks = 30, xlab = "Price in Thousands (natural log)", main = "Histogram of Price in $K (natual log)")
@@ -219,6 +219,22 @@ ggplot(car_sales, aes(x = ln_power_perf, y = ln_price_000, color = region)) +
     values = c("red", "green", "blue")
   ) +
   theme(legend.title = element_blank(), legend.position = c(0.9, 0.3))
+```
+
+```{r price and power performance ratio by two regimes (at/above and below mean), warning=FALSE, echo=FALSE, include=FALSE}
+#
+# Reviewed the correction of power and power performance ratio by the two regimes. Consistent patterns
+#
+ggplot(car_sales, aes(x = ln_power_perf, y = ln_price_000, color = car_sales$cat_power_perf)) +
+  geom_point() +
+  geom_smooth(method = lm, formula = y ~ x) +
+  labs(x = "Power Performance (in natural log)", y = "Price in Thousands (in natural log)") +
+  scale_color_manual(
+    name = "Higher/Lower Power Performance Regimes",
+    labels = c("Below Average", "At/Above Average"),
+    values = c("red", "green")
+  ) +
+  theme(legend.title = element_blank(), legend.position = c(0.85, 0.3))
 ```
 
 We then fit a regression of the form:
