@@ -111,9 +111,11 @@ car_sales <- car_sales %>%
 car_sales[, "cat_power_perf"] <- relevel(as.factor(car_sales$cat_power_perf),
   ref = "below_avg"
 )
+# During the EDA work, we explored whether the power performance vs price relationship shows many differences for the two regimes ("at&above_avg" and "below_avg")
+# We observed very little differences in the above exploratory analysis. Therefore we will not consider adding this indicator variable to the models.
 ```
 
-```{r histograms of key variables, include=FALSE}
+```{r histograms of key variables, echo=FALSE}
 hist_price <- ggplot(car_sales, aes(x = price_000)) +  geom_histogram(bins = 60)
 hist_ln_price <- ggplot(car_sales, aes(x = ln_price_000)) +  geom_histogram(bins = 60)
 
@@ -122,6 +124,8 @@ hist_ln_power_perf <- ggplot(car_sales, aes(x = ln_power_perf)) +  geom_histogra
 
 hist_curb_weight <- ggplot(car_sales, aes(x = curb_weight)) + geom_histogram(bins = 60)
 hist_ln_curb_weight <- ggplot(car_sales, aes(x = ln_curb_weight)) +  geom_histogram(bins = 60)
+#We observed that the log transformation brings price and power performance ratio data distribution close to the normal shape.
+#curb_weight is close to the normal distribution, and no need for log transformation
 ```
 
 
@@ -244,11 +248,6 @@ stargazer(vif_2, vif_3,
 
 vif_2
 vif_3
-```
-
-```{r linear conditional expectation and normal Q-Q plot, echo=FALSE}
-
-
 ```
 
 ```{r evaluate practical significance using Pearson test, include=FALSE}
